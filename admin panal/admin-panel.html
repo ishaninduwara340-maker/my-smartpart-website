@@ -1,0 +1,2919 @@
+<!DOCTYPE html>
+<html lang="si">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>SmartParts — PC Hardware & Components Store (Admin)</title>
+    <!-- Installable app (PWA): same logo as the storefront (icon.svg / icon.png) -->
+    <meta name="theme-color" content="#0d0d15">
+    <link rel="manifest" href="admin-manifest.json">
+    <link rel="icon" type="image/svg+xml" href="icon.svg">
+    <link rel="apple-touch-icon" href="icon.png">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="SP Admin">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chart.js for Analytics -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- EmailJS for sending emails -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <style>
+        :root {
+            --bg-dark: #0d0d15;
+            --sidebar-bg: #12121a;
+            --card-bg: #1a1a24;
+            --accent: #ff007f;
+            --accent-hover: #d4006a;
+            --text-main: #ffffff;
+            --text-muted: #888899;
+            --danger: #ff3366;
+            --danger-hover: #cc0033;
+            --border: rgba(255, 0, 127, 0.15);
+            --border-strong: rgba(255, 0, 127, 0.3);
+            --success: #00ffcc;
+            --warning: #f5a623;
+            --glow: 0 0 15px rgba(255, 0, 127, 0.2);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'IBM Plex Sans', 'Segoe UI', sans-serif; }
+        body { background-color: var(--bg-dark); color: var(--text-main); display: flex; height: 100vh; overflow: hidden; }
+
+        /* Login Screen */
+        #loginWrapper {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg-dark); display: flex; justify-content: center; align-items: center; z-index: 1000;
+        }
+        .login-card {
+            background: var(--card-bg); padding: 40px; border-radius: 16px; width: 400px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8), var(--glow); border: 1px solid var(--border-strong); text-align: center;
+        }
+        .login-card h2 { margin-bottom: 20px; color: var(--accent); font-family: 'Space Grotesk', sans-serif; }
+        .login-card input {
+            width: 100%; padding: 12px; margin: 10px 0; background: var(--sidebar-bg);
+            border: 1px solid var(--border-strong); color: #fff; border-radius: 10px; outline: none;
+        }
+        .login-card input:focus { border-color: var(--accent); box-shadow: var(--glow); }
+        .login-card button {
+            width: 100%; padding: 12px; background: var(--accent); border: none;
+            color: white; font-weight: bold; border-radius: 10px; cursor: pointer; margin-top: 15px;
+            box-shadow: 0 0 10px rgba(255, 0, 127, 0.4); transition: 0.3s;
+        }
+        .login-card button:hover { background: var(--accent-hover); box-shadow: 0 0 20px rgba(255, 0, 127, 0.6); }
+
+        /* Dashboard Layout */
+        #dashboardWrapper { display: none; width: 100%; height: 100%; display: flex; }
+        
+        /* Sidebar */
+        .sidebar {
+            width: 280px; background: var(--sidebar-bg); border-right: 1px solid var(--border-strong);
+            display: flex; flex-direction: column; padding: 20px; overflow-y: auto;
+        }
+        .sidebar-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 30px; }
+        .sidebar-header h2 { font-size: 1.2rem; color: var(--accent); font-family: 'Space Grotesk', sans-serif; display: flex; align-items: center; gap: 8px; }
+        
+        .nav-section { margin-bottom: 20px; }
+        .nav-title { font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); margin-bottom: 10px; letter-spacing: 1px; font-weight: 600; }
+        .nav-btn {
+            width: 100%; padding: 11px 14px; background: transparent; border: none; color: var(--text-main);
+            text-align: left; border-radius: 10px; cursor: pointer; margin-bottom: 6px; display: flex; align-items: center; gap: 10px; font-size: 0.95rem; transition: 0.2s;
+        }
+        .nav-btn:hover, .nav-btn.active { background: rgba(255, 0, 127, 0.1); color: var(--accent); border: 1px solid var(--border); }
+        .logout-sidebar-btn { margin-top: auto; background: rgba(255, 51, 102, 0.1); color: var(--danger); border: 1px solid rgba(255, 51, 102, 0.2); }
+        .logout-sidebar-btn:hover { background: var(--danger); color: white; }
+
+        /* Main Content Area */
+        .main-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+        .topbar {
+            height: 70px; background: var(--sidebar-bg); border-bottom: 1px solid var(--border-strong);
+            display: flex; align-items: center; justify-content: space-between; padding: 0 30px;
+        }
+        
+        /* --- Rotating Neon Search Bar Styles --- */
+        .search-wrapper {
+            position: relative;
+            padding: 2px;
+            border-radius: 18px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+        }
+
+        .search-wrapper::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: conic-gradient(from 0deg, transparent, transparent, transparent, #ff007f, #00f0ff);
+            animation: rotateGlow 4s linear infinite;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .search-wrapper:focus-within::before {
+            opacity: 1;
+        }
+
+        .search-container {
+            position: relative;
+            display: flex;
+            align-items: center;
+            background-color: #12121a;
+            border-radius: 16px;
+            z-index: 1;
+            padding: 4px;
+        }
+
+        .search-container .input {
+            width: 250px;
+            padding: 10px 10px 10px 38px;
+            font-size: 14px;
+            background-color: transparent;
+            border: none;
+            color: #ffffff;
+            outline: none;
+        }
+
+        .search-container .input::placeholder {
+            color: #888899;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 14px;
+            width: 16px;
+            height: 16px;
+            fill: none;
+            stroke: #888899;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            pointer-events: none;
+        }
+
+        .filter-btn {
+            background: #1a1a24;
+            border: none;
+            border-radius: 12px;
+            padding: 6px;
+            margin-right: 2px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.3s ease;
+        }
+
+        .filter-btn:hover {
+            background: #2a2a3b;
+        }
+
+        .filter-icon {
+            width: 16px;
+            height: 16px;
+            fill: none;
+            stroke: #ffffff;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        @keyframes rotateGlow {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .visually-hidden {
+            position: absolute;
+            width: 1px; height: 1px; padding: 0; margin: -1px;
+            overflow: hidden; clip: rect(0, 0, 0, 0); border: 0;
+        }
+        /* ------------------------------------- */
+        
+        .content-body { flex: 1; padding: 30px; overflow-y: auto; background: var(--bg-dark); }
+        .section-panel { display: none; }
+        .section-panel.active { display: block; }
+
+        /* Cards & Tables */
+        .card { background: var(--card-bg); border: 1px solid var(--border-strong); border-radius: 16px; padding: 25px; margin-bottom: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { padding: 14px; text-align: left; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
+        th { color: var(--text-muted); font-weight: 600; font-family: 'Space Grotesk', sans-serif; }
+        
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 8px; color: var(--text-muted); font-size: 0.85rem; font-weight: 500; }
+        .form-group input, .form-group textarea, .form-group select {
+            width: 100%; padding: 11px; background: var(--bg-dark); border: 1px solid var(--border);
+            color: white; border-radius: 10px; outline: none; transition: 0.2s;
+        }
+        .form-group input:focus, .form-group textarea:focus, .form-group select:focus {
+            border-color: var(--accent); box-shadow: var(--glow);
+        }
+        .full-width { grid-column: span 2; }
+        
+        .btn-primary { background: var(--accent); color: white; border: none; padding: 9px 16px; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 0.85rem; transition: 0.2s; box-shadow: 0 0 10px rgba(255, 0, 127, 0.2); }
+        .btn-primary:hover { background: var(--accent-hover); box-shadow: 0 0 15px rgba(255, 0, 127, 0.4); }
+        
+        .btn-danger { background: var(--danger); color: white; border: none; padding: 9px 16px; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 0.85rem; transition: 0.2s; }
+        .btn-danger:hover { background: var(--danger-hover); }
+        
+        .btn-success { background: var(--success); color: #0d0d15; border: none; padding: 9px 16px; border-radius: 10px; cursor: pointer; font-weight: 700; font-size: 0.85rem; transition: 0.2s; }
+        .btn-success:hover { opacity: 0.9; box-shadow: 0 0 10px rgba(0, 255, 204, 0.4); }
+
+        /* Badges & Alerts */
+        .badge { padding: 5px 10px; border-radius: 8px; font-size: 0.75rem; font-weight: bold; text-transform: uppercase; }
+        .badge-pending { background: rgba(245, 166, 35, 0.15); color: var(--warning); border: 1px solid rgba(245, 166, 35, 0.3); }
+        .badge-confirmed { background: rgba(0, 127, 255, 0.15); color: #4da3ff; border: 1px solid rgba(0, 127, 255, 0.3); }
+        .badge-cancelled { background: rgba(255, 51, 102, 0.15); color: #ff3366; border: 1px solid rgba(255, 51, 102, 0.3); }
+        .badge-shipping { background: rgba(0, 240, 255, 0.15); color: #00f0ff; border: 1px solid rgba(0, 240, 255, 0.3); }
+        .badge-delivered { background: rgba(0, 255, 204, 0.15); color: var(--success); border: 1px solid rgba(0, 255, 204, 0.3); }
+        .badge-lowstock { background: rgba(255, 51, 102, 0.15); color: var(--danger); border: 1px solid rgba(255, 51, 102, 0.3); animation: pulse 1.5s infinite; }
+
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+
+        /* Notification Banner */
+        #stockAlertBanner { background: rgba(255, 51, 102, 0.2); border: 1px solid var(--danger); padding: 12px 20px; border-radius: 10px; margin-bottom: 20px; display: none; align-items: center; justify-content: space-between; }
+
+        /* Stats Grid Styles */
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-top: 15px; }
+        .stat-card { background: var(--sidebar-bg); padding: 22px; border-radius: 12px; border: 1px solid var(--border); text-align: center; }
+        .stat-card h4 { color: var(--text-muted); font-size: 0.8rem; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .stat-card p { font-size: 1.6rem; font-weight: 700; color: var(--accent); font-family: 'Space Grotesk', sans-serif; }
+
+        /* Pagination Style */
+        .pagination { display: flex; gap: 5px; justify-content: center; margin-top: 20px; }
+        .pagination button { background: var(--sidebar-bg); border: 1px solid var(--border); color: white; padding: 6px 12px; border-radius: 6px; cursor: pointer; }
+        .pagination button.active { background: var(--accent); border-color: var(--accent); }
+
+        /* Modal for Editing / Customer Details */
+        .modal-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; justify-content: center; align-items: center; z-index: 2000; backdrop-filter: blur(5px); }
+        .modal-card { background: var(--card-bg); width: 500px; padding: 30px; border-radius: 16px; border: 1px solid var(--border-strong); max-height: 90vh; overflow-y: auto; box-shadow: 0 10px 40px rgba(0,0,0,0.8); }
+
+        /* ===== Slider Ads manager ===== */
+        .ad-thumb { width: 160px; height: 55px; object-fit: cover; border-radius: 8px; border: 1px solid var(--border); background: #000; display: block; }
+        .ad-preview { max-width: 100%; width: 320px; aspect-ratio: 1280 / 440; object-fit: cover; border-radius: 10px; border: 1px dashed var(--border-strong); margin-top: 10px; display: none; background: #000; }
+        .ad-badge { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 0.75rem; font-weight: 700; }
+        .ad-badge.on { background: rgba(0,255,204,0.15); color: var(--success); }
+        .ad-badge.off { background: rgba(255,255,255,0.08); color: var(--text-muted); }
+        .ad-link-cell { max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+        /* ===== Reviews table: scrollable, readable columns, stacked buttons ===== */
+        .rv-scroll { overflow-x: auto; margin-top: 15px; border-radius: 10px; }
+        .rv-scroll table { margin-top: 0; min-width: 760px; table-layout: auto; }
+        #reviewsManager .rv-scroll th, #reviewsManager .rv-scroll td { padding: 12px 10px; }
+        #reviewsManager th, #reviewsManager td { vertical-align: top; }
+        #reviewsManager td.rv-date { white-space: nowrap; font-size: 0.8rem; color: var(--text-muted); }
+        #reviewsManager td.rv-date b { display: block; color: var(--text-main, #fff); font-size: 0.86rem; font-weight: 600; }
+        #reviewsManager td.rv-cust { min-width: 120px; font-weight: 600; }
+        #reviewsManager td.rv-prod { min-width: 150px; max-width: 200px; word-break: break-word; font-size: 0.82rem; }
+        #reviewsManager td.rv-prod .gen { color: var(--text-muted); font-style: italic; }
+        #reviewsManager td.rv-text { min-width: 220px; white-space: normal; word-break: break-word; line-height: 1.55; }
+        #reviewsManager td.rv-act { min-width: 125px; width: 125px; }
+        #reviewsManager td.rv-act .rv-btns { display: flex; flex-direction: column; gap: 6px; }
+        #reviewsManager td.rv-act button { width: 100%; padding: 7px 12px; font-size: 0.8rem; white-space: nowrap; }
+        .rv-filters select { background: var(--bg-dark); border: 1px solid var(--border); padding: 8px 12px; border-radius: 8px; color: white; outline: none; }
+    
+        .ord-filters { display:flex; flex-wrap:wrap; gap:12px; align-items:flex-end; margin:16px 0 8px; }
+        .ord-filters label { display:flex; flex-direction:column; gap:5px; font-size:0.75rem; color:var(--text-muted); }
+        .ord-filters select, .ord-filters input[type="date"] { background:var(--bg-dark); border:1px solid var(--border); padding:8px 10px; border-radius:8px; color:white; outline:none; font-size:0.85rem; }
+        .ord-filters select:focus, .ord-filters input[type="date"]:focus { border-color:var(--accent); }
+        .ord-filters .ord-check { flex-direction:row; align-items:center; gap:8px; padding:9px 4px; color:var(--text); font-size:0.85rem; cursor:pointer; }
+        .ord-summary { margin:6px 0 12px; font-size:0.85rem; color:var(--text-muted); }
+        .ord-summary b { color:var(--text); }
+        .ord-when b { display:block; font-size:0.85rem; }
+        .ord-when small { color:var(--text-muted); }
+        .ord-ago { color:#00f0ff; font-size:0.72rem; }
+
+        /* ===== Professional dashboard polish (SB-Admin style, keeps the dark/pink theme) ===== */
+        .card { border-radius: 12px; border-color: var(--border); box-shadow: 0 2px 12px rgba(0,0,0,.35); padding: 22px; }
+        .card > h3 { font-size: 1.05rem; padding-bottom: 12px; margin-bottom: 14px; border-bottom: 1px solid var(--border); letter-spacing: .2px; }
+        table { margin-top: 8px; }
+        thead th { background: rgba(255,255,255,.03); color: var(--text-muted); font-size: .72rem; text-transform: uppercase; letter-spacing: .6px; padding: 11px 14px; border-bottom: 1px solid var(--border-strong); white-space: nowrap; }
+        tbody tr { transition: background .15s; }
+        tbody tr:nth-child(even) { background: rgba(255,255,255,.02); }
+        tbody tr:hover { background: rgba(255, 0, 127,.07); }
+        td { padding: 11px 14px; vertical-align: middle; }
+        td button, td .btn-success, td .btn-danger, td .btn-primary { padding: 6px 11px; font-size: .76rem; border-radius: 8px; margin: 2px 4px 2px 0; display: inline-block; }
+        .stats-grid { gap: 16px; }
+        .stat-card { position: relative; text-align: left; padding: 18px 20px 18px 24px; border-radius: 10px; overflow: hidden; background: var(--card-bg); box-shadow: 0 2px 10px rgba(0,0,0,.35); }
+        .stat-card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 5px; background: var(--accent); }
+        .stat-card:nth-child(4n+2)::before { background: #4da3ff; }
+        .stat-card:nth-child(4n+3)::before { background: var(--success); }
+        .stat-card:nth-child(4n+4)::before { background: var(--warning); }
+        .stat-card:nth-child(4n+2) p { color: #4da3ff; }
+        .stat-card:nth-child(4n+3) p { color: var(--success); }
+        .stat-card:nth-child(4n+4) p { color: var(--warning); }
+        .stat-card h4 { font-size: .7rem; letter-spacing: .8px; }
+        .stat-card p { font-size: 1.7rem; }
+        .nav-btn.active { box-shadow: inset 3px 0 0 var(--accent); }
+        input, select, textarea { border-radius: 8px; }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,.14); border-radius: 8px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+    
+        /* ===== Orders table fit: Actions column never gets cut off ===== */
+        #orders .card { overflow-x: auto; }
+        #orders table { width: 100%; }
+        #orders th, #orders td { padding: 9px 10px; }
+        #orders td:nth-child(3) { word-break: break-word; min-width: 120px; max-width: 190px; font-size: .82rem; }
+        #orders td:nth-child(4) select { max-width: 150px; }
+        #orders td:last-child, #orders th:last-child { position: sticky; right: 0; background: var(--card-bg); min-width: 96px; box-shadow: -6px 0 8px -6px rgba(0,0,0,.6); }
+        #orders td:last-child button { display: block; width: 100%; margin: 3px 0; text-align: center; }
+        @media (max-width: 1500px) { .sidebar { width: 245px; } }
+
+        /* ===== Pro redesign: dark purple glass dashboard ===== */
+        body { background: radial-gradient(1200px 600px at 85% -10%, rgba(212,0,106,.35), transparent 60%), radial-gradient(900px 500px at -10% 110%, rgba(255,0,127,.22), transparent 60%), #0d0d15; font-size: 15px; }
+        .sidebar { margin: 14px 0 14px 14px; height: calc(100vh - 28px); border-radius: 22px; border: 1px solid rgba(255,0,127,.28); background: linear-gradient(180deg, rgba(30,30,44,.85), rgba(18,18,26,.92)); box-shadow: 0 10px 40px rgba(0,0,0,.45); backdrop-filter: blur(14px); }
+        .sidebar-header h2 { font-size: 1.25rem; color: #fff; }
+        .sidebar-header h2::after { content: ''; }
+        .nav-title { color: #888899; }
+        .sidebar { width: 270px; }
+        .nav-btn { border: 1px solid transparent; border-radius: 14px; color: #d6d6e4; white-space: nowrap; font-size: .9rem; padding: 10px 12px; }
+        .nav-btn:hover { background: rgba(255,0,127,.14); color: #fff; border-color: rgba(255,0,127,.3); }
+        .nav-btn.active { background: linear-gradient(135deg, #d4006a, #ff007f); color: #fff; border-color: transparent; box-shadow: 0 8px 22px rgba(212,0,106,.45); }
+        .logout-sidebar-btn { border-radius: 14px; }
+        .main-content { padding: 14px; gap: 14px; }
+        .topbar { height: 66px; border-radius: 20px; border: 1px solid rgba(255,0,127,.28); background: linear-gradient(90deg, rgba(30,30,44,.85), rgba(18,18,26,.85)); backdrop-filter: blur(12px); }
+        .main-content > div:last-child, .main-content > .content-area { border-radius: 20px; }
+        .card { background: linear-gradient(160deg, rgba(30,30,44,.75), rgba(18,18,26,.92)); border: 1px solid rgba(255,0,127,.25); border-radius: 22px; box-shadow: 0 10px 34px rgba(0,0,0,.4); backdrop-filter: blur(10px); }
+        .card h3 { font-family: 'Space Grotesk', sans-serif; letter-spacing: .2px; }
+        .btn-primary { background: linear-gradient(135deg, #d4006a, #ff007f); border-radius: 999px; box-shadow: 0 6px 18px rgba(212,0,106,.4); }
+        .btn-primary:hover { background: linear-gradient(135deg, #b3005a, #e6006f); }
+        .btn-success, .btn-danger { border-radius: 999px; }
+        input, select, textarea { background: rgba(13,13,21,.6); border: 1px solid rgba(255,0,127,.28); color: #fff; border-radius: 12px; }
+        input:focus, select:focus, textarea:focus { outline: none; border-color: #ff007f; box-shadow: 0 0 0 3px rgba(255,0,127,.25); }
+        thead th { background: rgba(255,0,127,.10); color: #a9a9b8; }
+        tbody tr:nth-child(even) { background: rgba(255,255,255,.025); }
+        tbody tr:hover { background: rgba(255,0,127,.12); }
+        .stat-card { background: linear-gradient(160deg, rgba(44,20,40,.7), rgba(18,18,26,.9)); border: 1px solid rgba(255,0,127,.28); border-radius: 20px; }
+        .stat-card::before { background: linear-gradient(180deg,#ff007f,#d4006a); }
+        .badge { border-radius: 999px; }
+        #orders td:last-child, #orders th:last-child { background: #1a1a24; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,0,127,.35); }
+        /* Order notifications page */
+        .notif-head { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:16px; }
+        .notif-stats { display:grid; grid-template-columns: repeat(auto-fit,minmax(150px,1fr)); gap:12px; margin-bottom:16px; }
+        .notif-stat { background: rgba(255,0,127,.12); border:1px solid rgba(255,0,127,.28); border-radius:16px; padding:14px 16px; }
+        .notif-stat small { color:#888899; text-transform:uppercase; letter-spacing:.6px; font-size:.68rem; }
+        .notif-stat b { display:block; font-size:1.6rem; font-family:'Space Grotesk',sans-serif; margin-top:4px; }
+        .notif-item { display:flex; gap:14px; align-items:flex-start; padding:16px; border-radius:18px; margin-bottom:12px; background: rgba(255,255,255,.04); border:1px solid rgba(255,0,127,.2); }
+        .notif-item.is-new { border-color:#ff007f; background: linear-gradient(135deg, rgba(212,0,106,.28), rgba(255,255,255,.04)); animation: notifPop .6s ease; }
+        .notif-ico { width:44px; height:44px; flex:none; border-radius:14px; display:flex; align-items:center; justify-content:center; font-size:1.3rem; background:linear-gradient(135deg,#d4006a,#ff007f); }
+        .notif-body { flex:1; min-width:0; }
+        .notif-body h4 { font-size:1rem; margin-bottom:2px; }
+        .notif-body p { color:#a9a9b8; font-size:.85rem; line-height:1.5; word-break:break-word; }
+        .notif-side { text-align:right; flex:none; }
+        .notif-side .t { color:#888899; font-size:.75rem; display:block; margin-bottom:6px; }
+        .notif-new-tag { background:#00ffcc; color:#00110d; font-size:.62rem; font-weight:800; padding:2px 8px; border-radius:999px; margin-left:8px; vertical-align:middle; }
+        .nav-count { margin-left:auto; background:#ff3366; color:#fff; border-radius:999px; font-size:.68rem; padding:2px 8px; font-weight:700; display:none; }
+        @keyframes notifPop { from { transform: translateY(-10px) scale(.98); opacity:0; } to { transform:none; opacity:1; } }
+        .notif-toast { position:fixed; right:22px; top:22px; z-index:5000; background:linear-gradient(135deg,#d4006a,#ff007f); color:#fff; padding:14px 18px; border-radius:16px; box-shadow:0 14px 40px rgba(0,0,0,.5); max-width:340px; cursor:pointer; animation: notifPop .4s ease; }
+        /* ===== Mobile: sidebar becomes a slide-in drawer ===== */
+        .sb-toggle, .sb-overlay { display: none; }
+        @media (max-width: 900px) {
+            .sb-toggle { display: inline-flex; align-items: center; justify-content: center; flex: none; width: 42px; height: 42px; border-radius: 12px; border: 1px solid rgba(255,0,127,.35); background: rgba(255,0,127,.12); color: #fff; font-size: 1.3rem; cursor: pointer; }
+            .sb-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.65); z-index: 2999; }
+            body.sb-open .sb-overlay { display: block; }
+            .sidebar { position: fixed; top: 0; left: 0; bottom: 0; margin: 0; height: 100%; max-height: none; width: min(280px, 82vw); border-radius: 0 22px 22px 0; z-index: 3000; transform: translateX(-105%); transition: transform .25s ease; }
+            body.sb-open .sidebar { transform: none; }
+            .main-content { width: 100%; min-width: 0; padding: 8px; gap: 8px; }
+            .topbar { padding: 0 10px; gap: 8px; height: 60px; }
+            .topbar .search-wrapper { flex: 1; min-width: 0; }
+            .topbar .search-container { width: 100%; }
+            .topbar > div:last-child { display: none; }
+            .content-body { padding: 12px; }
+            .card { padding: 16px; }
+            .form-grid { grid-template-columns: 1fr; }
+            .login-card { width: 92%; padding: 28px 20px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 1. Admin Login Screen -->
+    <div id="loginWrapper">
+        <div class="login-card">
+            <img src="icon.svg" alt="SmartParts" onerror="this.style.display='none'" style="display:block;margin:0 auto 10px;height:64px;width:auto">
+            <h2>SmartPart Admin</h2>
+            <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 20px;">කරුණාකර ඔබේ ඇඩ්මින් ගිණුමෙන් ලොග් වන්න</p>
+            <input type="email" id="adminEmail" placeholder="Admin Email">
+            <input type="password" id="adminPassword" placeholder="Password">
+            <button id="loginBtn">Login වන්න</button>
+        </div>
+    </div>
+
+    <!-- 2. Main Dashboard Wrapper -->
+    <div id="dashboardWrapper">
+        <div class="sb-overlay" onclick="document.body.classList.remove('sb-open')"></div>
+        <!-- Sidebar Navigation -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <h2><img src="icon.svg" alt="" onerror="this.style.display='none'" style="height:28px;width:auto;vertical-align:middle;margin-right:8px">Admin Mode</h2>
+            </div>
+            
+            <div class="nav-section">
+                <div class="nav-title">Catalog</div>
+                <button class="nav-btn active" onclick="switchTab('addProduct')">➕ Add Product</button>
+                <button class="nav-btn" onclick="switchTab('manageProducts')">📦 Manage Products</button>
+                <button class="nav-btn" onclick="switchTab('manageCategories')">🗂️ Categories</button>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-title">Orders & Sales</div>
+                <button class="nav-btn" onclick="switchTab('orderAlerts')">🔔 Order Notifications <span id="notifNavCount" class="nav-count">0</span></button>
+                <button class="nav-btn" onclick="switchTab('orders')">📋 Orders & Invoices</button>
+                <button class="nav-btn" onclick="switchTab('dashboardStats')">📊 Dashboard & Analytics</button>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-title">People & Marketing</div>
+                <button class="nav-btn" onclick="switchTab('customers')">👥 Customers</button>
+                <button class="nav-btn" onclick="switchTab('coupons')">🏷️ Coupons</button>
+                <button class="nav-btn" onclick="switchTab('offerSettings')">🔥 Offer Banner</button>
+                <button class="nav-btn" onclick="switchTab('adsManager')">🖼️ Slider Ads</button>
+                <button class="nav-btn" onclick="switchTab('reviewsManager')">⭐ Reviews <span id="reviewsPendingBadge" class="badge badge-pending" style="display:none; margin-left:auto; padding:2px 8px;">0</span></button>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-title">Data Management</div>
+                <button class="nav-btn" onclick="switchTab('backup')">💾 Backup & Restore</button>
+                <button class="nav-btn" id="installAppBtn" onclick="installAdminApp()">📲 Install Admin App</button>
+            </div>
+
+            <button class="nav-btn logout-sidebar-btn" id="logoutBtn">🚪 Exit Admin Mode</button>
+        </div>
+
+        <!-- Content Panel -->
+        <div class="main-content">
+            <div class="topbar">
+                <button class="sb-toggle" type="button" aria-label="Menu" onclick="document.body.classList.toggle('sb-open')">☰</button>
+                <!-- Rotating Neon Search Bar -->
+                <div class="search-wrapper">
+                    <div class="search-container">
+                        <svg class="search-icon" viewBox="0 0 24 24">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                        </svg>
+
+                        <label for="search-input" class="visually-hidden">Search</label>
+                        <input 
+                            id="search-input"
+                            placeholder="Quick search..."
+                            type="text"
+                            name="text"
+                            class="input"
+                            aria-label="Search"
+                            autocomplete="off"
+                        />
+
+                        <button class="filter-btn" type="button" aria-label="Filter">
+                            <svg class="filter-icon" viewBox="0 0 24 24">
+                                <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <div><b>Ishan Induwara</b> (Admin)</div>
+            </div>
+
+            <div class="content-body">
+                
+                <!-- Stock Alert Notification Banner -->
+                <div id="stockAlertBanner">
+                    <span id="stockAlertText">⚠️ අවධානයයි! භාණ්ඩ කිහිපයක තොග අවම මට්ටමක පවතී.</span>
+                    <button class="btn-primary" onclick="switchTab('manageProducts')" style="padding: 5px 10px; font-size: 0.75rem;">පරීක්ෂා කරන්න</button>
+                </div>
+
+                <!-- TAB 1: Add Product -->
+                <div id="addProduct" class="section-panel active">
+                    <div class="card">
+                        <h3>අලුත් හාඩ්වෙයාර් අයිතමයක් එකතු කිරීම (Add Product)</h3><br>
+                        <form id="productForm">
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label>භාණ්ඩයේ නම (Product Name)</label>
+                                    <input type="text" id="pName" required placeholder="උදා: SSD 512GB NVMe">
+                                </div>
+                                <div class="form-group">
+                                    <label>මිළ (Price - LKR)</label>
+                                    <input type="number" id="pPrice" min="0" step="any" required placeholder="උදා: 18500" oninput="discHint('pPrice','pOrig','pDiscHint')">
+                                </div>
+                                <div class="form-group">
+                                    <label>මුල් මිල (Original price - LKR, විකල්ප)</label>
+                                    <input type="number" id="pOrig" min="0" step="any" placeholder="උදා: 20500 (discount පෙන්වන්න ඕන නම් පමණක්)" oninput="discHint('pPrice','pOrig','pDiscHint')">
+                                    <small id="pDiscHint" style="color:var(--text-muted);"></small>
+                                </div>
+                                <div class="form-group">
+                                    <label>ප්‍රවර්ගය (Category)</label>
+                                    <select id="pCategory">
+                                        <!-- Dynamic categories will load here -->
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>තොග ප්‍රමාණය (Stock Qty)</label>
+                                    <input type="number" id="pStock" min="0" step="1" required placeholder="උදා: 10">
+                                </div>
+                                <div class="form-group">
+                                    <label>Brand (විකල්ප)</label>
+                                    <input type="text" id="pBrand" placeholder="උදා: Anker, Baseus, Logitech">
+                                </div>
+                                <div class="form-group">
+                                    <label>Compatible with (කොමාවෙන් වෙන් කරන්න)</label>
+                                    <input type="text" id="pCompat" placeholder="උදා: iPhone, Android, Laptop, PC">
+                                </div>
+                                <div class="form-group full-width">
+                                    <label>Specs (එක line එකකට එක spec එක, විකල්ප)</label>
+                                    <textarea id="pSpecs" rows="4" placeholder="උදා:&#10;512GB NVMe&#10;Read 3500MB/s&#10;5 Year Warranty"></textarea>
+                                </div>
+                                <div class="form-group full-width">
+                                    <label>විස්තරය (Description)</label>
+                                    <textarea id="pDesc" rows="3" placeholder="භාණ්ඩය පිළිබඳ සටහනක්..."></textarea>
+                                </div>
+                                <div class="form-group full-width">
+                                    <label>රූපයේ ලින්ක් එක (Image URL)</label>
+                                    <textarea id="pImage" rows="3" placeholder="පින්තූරයේ ලින්ක් එක මෙතැනට දෙන්න (angle ගණනාවක් නම් එක line එකකට එක link)" oninput="addImgPreview()"></textarea>
+                                    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:8px;">
+                                        <input type="file" id="pImageFile" accept="image/png,image/jpeg,image/webp,image/gif" multiple style="display:none" onchange="uploadProductPhotos(this,'pImage','pImageStatus')">
+                                        <button type="button" class="btn-success" onclick="document.getElementById('pImageFile').click()">📤 Upload photo (computer එකෙන්)</button>
+                                        <span id="pImageStatus" style="font-size:0.85rem;color:var(--text-muted);"></span>
+                                    </div>
+                                    <div id="pImgPreview" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;"></div>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn-primary">ඩේටාබේස් එකට එකතු කරන්න</button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- TAB 2: Manage Products -->
+                <div id="manageProducts" class="section-panel">
+                    <div class="card">
+                        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+                            <h3>භාණ්ඩ ලැයිස්තුව සහ කළමනාකරණය (Manage Products)</h3>
+                            <div style="display: flex; gap: 10px;">
+                                <input type="text" id="productSearchInput" placeholder="භාණ්ඩ නමින් සොයන්න..." oninput="filterProductsTable()" style="background:var(--bg-dark); border:1px solid var(--border); padding:8px 12px; border-radius:8px; color:white; outline:none;">
+                                <button onclick="loadProducts()" class="btn-primary">🔄 Refresh</button>
+                            </div>
+                        </div>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>නම</th>
+                                    <th>මිළ (LKR)</th>
+                                    <th>ප්‍රවර්ගය</th>
+                                    <th>තොගය</th>
+                                    <th>ක්‍රියාමාර්ග (Actions)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="productTableBody"></tbody>
+                        </table>
+                        <div class="pagination" id="productPagination"></div>
+                    </div>
+                </div>
+
+                <!-- TAB 2.1: Manage Categories -->
+                <div id="manageCategories" class="section-panel">
+                    <div class="card">
+                        <h3>ප්‍රවර්ග කළමනාකරණය (Manage Categories)</h3><br>
+                        <form id="categoryForm" style="margin-bottom: 20px;">
+                            <div class="form-group">
+                                <label>නව ප්‍රවර්ගයේ නම (Category Name)</label>
+                                <input type="text" id="catName" required placeholder="උදා: Cooling Fans">
+                            </div>
+                            <button type="submit" class="btn-primary">ප්‍රවර්ගය එකතු කරන්න</button>
+                        </form>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ප්‍රවර්ගයේ නම</th>
+                                    <th>Slug</th>
+                                    <th>ක්‍රියාමාර්ග</th>
+                                </tr>
+                            </thead>
+                            <tbody id="categoriesTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- TAB 3: Orders -->
+                <div id="orders" class="section-panel">
+                    <div class="card">
+                        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+                            <h3>පාරිභෝගික ඇණවුම් සහ ඉන්වොයිසි (Customer Orders)</h3>
+                            <input type="text" id="orderSearchInput" placeholder="Search name / email / phone / order no..." oninput="filterOrdersTable()" style="background:var(--bg-dark); border:1px solid var(--border); padding:8px 12px; border-radius:8px; color:white; outline:none;">
+                        </div>
+                        <div class="ord-filters">
+                            <label>Time
+                                <select id="ordTime" onchange="filterOrdersTable()">
+                                    <option value="all">All time</option>
+                                    <option value="1h">Last 1 hour</option>
+                                    <option value="6h">Last 6 hours</option>
+                                    <option value="12h">Last 12 hours</option>
+                                    <option value="24h">Last 24 hours</option>
+                                    <option value="today">Today</option>
+                                    <option value="yesterday">Yesterday</option>
+                                    <option value="7d">Last 7 days</option>
+                                    <option value="30d">Last 30 days (month)</option>
+                                    <option value="custom">Custom dates...</option>
+                                </select>
+                            </label>
+                            <label id="ordCustomWrap" style="display:none;">From <input type="date" id="ordFrom" onchange="filterOrdersTable()"></label>
+                            <label id="ordCustomWrap2" style="display:none;">To <input type="date" id="ordTo" onchange="filterOrdersTable()"></label>
+                            <label>Status
+                                <select id="ordStatus" onchange="filterOrdersTable()">
+                                    <option value="all">All</option>
+                                    <option value="Pending">Pending</option>
+                                    <option value="Confirmed">Confirmed</option>
+                                    <option value="Shipping">Shipping</option>
+                                    <option value="Delivered">Delivered</option>
+                                    <option value="Cancelled">Cancelled</option>
+                                </select>
+                            </label>
+                            <label>Payment
+                                <select id="ordPay" onchange="filterOrdersTable()">
+                                    <option value="all">All</option>
+                                    <option value="bank">Bank transfer only</option>
+                                    <option value="Pending">Bank: Payment pending</option>
+                                    <option value="Confirmed">Bank: Payment confirmed</option>
+                                    <option value="Cancelled">Bank: Payment cancelled</option>
+                                    <option value="other">Card / other</option>
+                                </select>
+                            </label>
+                            <label>Sort
+                                <select id="ordSort" onchange="filterOrdersTable()">
+                                    <option value="new">Newest first</option>
+                                    <option value="old">Oldest first</option>
+                                    <option value="high">Highest amount</option>
+                                    <option value="low">Lowest amount</option>
+                                </select>
+                            </label>
+                            <label class="ord-check"><input type="checkbox" id="ordGroup" onchange="filterOrdersTable()"> Group by customer</label>
+                            <button type="button" class="btn-danger" style="padding:8px 12px;" onclick="resetOrderFilters()">Reset</button>
+                            <button type="button" class="btn-success" style="padding:8px 12px;" onclick="exportSalesCSV()">📥 Sales report (CSV)</button>
+                        </div>
+                        <div id="ordSummary" class="ord-summary"></div>
+                        <table>
+                            <thead id="ordersThead"></thead>
+                            <tbody id="ordersTableBody"></tbody>
+                        </table>
+                        <div class="pagination" id="orderPagination"></div>
+                    </div>
+                </div>
+
+                <!-- TAB 4: Dashboard Stats & Charts -->
+                <div id="dashboardStats" class="section-panel">
+                    <div class="card">
+                        <h3>සාරාංශ වාර්තාව සහ විශ්ලේෂණ (Sales Dashboard & Analytics)</h3>
+                        <p style="color: var(--text-muted); margin-top: 10px;">මුළු නිෂ්පාදන, ඇණවුම් තත්ත්වය සහ විකුණුම් ප්‍රස්ථාර පරීක්ෂා කරන්න.</p>
+                        
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <h4>Total Products</h4>
+                                <p id="statProducts">0</p>
+                            </div>
+                            <div class="stat-card">
+                                <h4>Total Orders</h4>
+                                <p id="statOrders">0</p>
+                            </div>
+                            <div class="stat-card">
+                                <h4>Total Customers</h4>
+                                <p id="statCustomers">0</p>
+                            </div>
+                            <div class="stat-card">
+                                <h4>Total Coupons</h4>
+                                <p id="statCoupons">0</p>
+                            </div>
+                            <div class="stat-card" style="grid-column: span auto;">
+                                <h4>Total Revenue (LKR)</h4>
+                                <p id="statRevenue">0</p>
+                            </div>
+                        </div>
+
+                        <!-- Chart Section -->
+                        <div style="margin-top: 40px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                            <div style="background: var(--sidebar-bg); padding: 20px; border-radius: 12px; border: 1px solid var(--border);">
+                                <h4 style="margin-bottom: 15px; color: var(--text-muted);">Orders Status Breakdown</h4>
+                                <canvas id="orderStatusChart" style="max-height: 250px;"></canvas>
+                            </div>
+                            <div style="background: var(--sidebar-bg); padding: 20px; border-radius: 12px; border: 1px solid var(--border);">
+                                <h4 style="margin-bottom: 15px; color: var(--text-muted);">Products by Category</h4>
+                                <canvas id="categoryChart" style="max-height: 250px;"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 5: Customers -->
+                <div id="customers" class="section-panel">
+                    <div class="card">
+                        <h3>පාරිභෝගික ලැයිස්තුව (Customers)</h3>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>නම</th>
+                                    <th>ඊමේල්</th>
+                                    <th>දුරකථන අංකය</th>
+                                    <th>ක්‍රියාමාර්ග</th>
+                                </tr>
+                            </thead>
+                            <tbody id="customersTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- TAB 6: Coupons -->
+                <div id="coupons" class="section-panel">
+                    <div class="card">
+                        <h3>කූපන් කළමනාකරණය (Coupons & Discounts)</h3>
+                        <form id="couponForm" style="margin-bottom: 20px;">
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label>කූපන් කේතය (Code)</label>
+                                    <input type="text" id="cCode" required placeholder="උදා: SMART10" style="text-transform: uppercase;" oninput="this.value = this.value.toUpperCase();">
+                                </div>
+                                <div class="form-group">
+                                    <label>වට්ටම් ප්‍රතිශතය (%)</label>
+                                    <input type="number" id="cDiscount" required placeholder="උදා: 10">
+                                </div>
+                            </div>
+                            <button type="submit" class="btn-primary">කූපනය එකතු කරන්න</button>
+                        </form>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>කේතය</th>
+                                    <th>වට්ටම (%)</th>
+                                    <th>ක්‍රියාමාර්ග</th>
+                                </tr>
+                            </thead>
+                            <tbody id="couponsTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- TAB: Offer Banner -->
+                <div id="offerSettings" class="section-panel">
+                    <div class="card">
+                        <h3>🔥 Offer Banner &amp; Countdown</h3>
+                        <p style="margin-bottom:14px;opacity:.8;">When active, the banner + countdown show at the top of the store and the discount applies to every product automatically until the expiry time.</p>
+                        <form id="offerForm">
+                            <div class="form-grid">
+                                <div class="form-group"><label>Banner Title</label><input type="text" id="oTitle" placeholder="🔥 Mega Sale — ends soon!"></div>
+                                <div class="form-group"><label>Discount (%)</label><input type="number" id="oPercent" min="1" max="99" step="0.5" required placeholder="e.g. 15"></div>
+                                <div class="form-group"><label>Expiry Date &amp; Time</label><input type="datetime-local" id="oExpiry" required></div>
+                                <div class="form-group"><label>Status</label><select id="oEnabled"><option value="1">Active</option><option value="0">Off</option></select></div>
+                            </div>
+                            <button type="submit" class="btn-primary">Save Offer</button>
+                            <button type="button" class="btn-danger" onclick="turnOffOffer()" style="margin-left:8px;">Turn Off</button>
+                        </form>
+                        <div id="offerStatus" style="margin-top:14px;font-weight:600;"></div>
+                    </div>
+                    <div class="card" style="margin-top:20px;">
+                        <h3>🚚 Free Delivery Progress Bar</h3>
+                        <p style="margin-bottom:14px;opacity:.8;">Cart එකේ "තව LKR X ක් දැම්මොත් free delivery" bar එක පෙන්වන්නේ මේ අගයෙන්. Off කළොත් bar එක පේන්නේ නැහැ.</p>
+                        <form id="shipForm">
+                            <div class="form-grid">
+                                <div class="form-group"><label>Free delivery from (LKR)</label><input type="number" id="shipTarget" min="1" step="1" required placeholder="e.g. 50000"></div>
+                                <div class="form-group"><label>Reward text</label><input type="text" id="shipLabel" placeholder="free delivery"></div>
+                                <div class="form-group"><label>Status</label><select id="shipEnabled"><option value="1">Active</option><option value="0">Off</option></select></div>
+                            </div>
+                            <button type="submit" class="btn-primary">Save</button>
+                        </form>
+                        <div id="shipStatus" style="margin-top:14px;font-weight:600;"></div>
+                    </div>
+                </div>
+
+                <!-- TAB: Slider Ads -->
+                <div id="adsManager" class="section-panel">
+                    <div class="card">
+                        <h3 id="adFormTitle">🖼️ Slider Ads (Ad Photos & Links)</h3>
+                        <p style="color: var(--text-muted); margin: 10px 0 20px; font-size: 0.85rem;">
+                            මෙහි එකතු කරන ඡායාරූප Website එකේ Hero Slider එකේ (text/button නැතිව) ඡායාරූප පමණක් ලෙස පෙන්වයි. නිර්දේශිත ප්‍රමාණය: 1280 × 440 px (JPG / PNG / WebP, උපරිම 3MB).
+                        </p>
+                        <form id="adForm" style="margin-bottom: 20px;">
+                            <input type="hidden" id="adId">
+                            <input type="hidden" id="adExistingImage">
+                            <div class="form-group">
+                                <label>Ad Photo එක Upload කරන්න</label>
+                                <input type="file" id="adFile" accept="image/png,image/jpeg,image/webp,image/gif">
+                            </div>
+                            <div class="form-group">
+                                <label>හෝ පින්තූරයේ Link එක (Image URL)</label>
+                                <input type="text" id="adImageUrl" placeholder="https://...">
+                                <img id="adPreview" class="ad-preview" alt="Preview">
+                            </div>
+                            <div class="form-group">
+                                <label>Click කළාම යන Link එක (Target URL)</label>
+                                <input type="text" id="adTargetUrl" placeholder="https://...">
+                            </div>
+                            <div class="form-group">
+                                <label>Position</label>
+                                <select id="adPosition">
+                                    <option value="slider">slider (Hero Slider)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+                                    <input type="checkbox" id="adActive" checked style="width:auto;"> Active (Website එකේ පෙන්වන්න)
+                                </label>
+                            </div>
+                            <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                                <button type="submit" class="btn-primary" id="adSubmitBtn">➕ Ad එක එකතු කරන්න</button>
+                                <button type="button" class="btn-danger" id="adCancelBtn" style="display:none;" onclick="cancelAdEdit()">අවලංගු කරන්න</button>
+                            </div>
+                        </form>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Photo</th>
+                                    <th>Target Link</th>
+                                    <th>Position</th>
+                                    <th>Status</th>
+                                    <th>ක්‍රියාමාර්ග</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adsTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- TAB: Customer Reviews -->
+                <div id="reviewsManager" class="section-panel">
+                    <div class="card">
+                        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+                            <h3>⭐ Customer Reviews (View / Approve / Delete)</h3>
+                            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                                <span class="rv-filters" style="display:flex; gap:10px; flex-wrap:wrap;">
+                                <select id="reviewFilter" onchange="filterReviews()">
+                                    <option value="all">All reviews</option>
+                                    <option value="pending">Pending approval</option>
+                                    <option value="approved">Approved (live)</option>
+                                </select>
+                                <select id="reviewTypeFilter" onchange="filterReviews()">
+                                    <option value="all">All types</option>
+                                    <option value="product">Product reviews</option>
+                                    <option value="general">General (site) reviews</option>
+                                </select>
+                                </span>
+                                <button onclick="loadReviews()" class="btn-primary">🔄 Refresh</button>
+                            </div>
+                        </div>
+                        <p style="color: var(--text-muted); margin-top: 10px; font-size: 0.85rem;">Only <b>Approved</b> reviews are shown on the live website. New customer reviews arrive as <b>Pending</b>.</p>
+                        <div class="rv-scroll">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Customer</th>
+                                    <th>Product</th>
+                                    <th>Rating</th>
+                                    <th>Review</th>
+                                    <th>Status / ක්‍රියාමාර්ග</th>
+                                </tr>
+                            </thead>
+                            <tbody id="reviewsTableBody"></tbody>
+                        </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 8: Backup & Restore -->
+                <div id="orderAlerts" class="section-panel">
+                    <div class="card">
+                        <div class="notif-head">
+                            <div>
+                                <h3>🔔 Order Notifications <span style="font-size:.7rem;color:#00ffcc;margin-left:6px;">● LIVE</span></h3>
+                                <p style="color:var(--text-muted);font-size:.85rem;margin-top:4px;">අලුත් order එකක් ආපු ගමන් refresh නැතුව මෙතන පේනවා (sound එකකුත් එනවා).</p>
+                            </div>
+                            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                                <button class="btn-primary" id="notifSoundBtn" onclick="toggleNotifSound()">🔊 Sound: ON</button>
+                                <button class="btn-primary" onclick="beep(true)">▶ Test sound</button>
+                                <button class="btn-primary" onclick="enableDesktopAlerts()">🖥️ Desktop alerts</button>
+                                <button class="btn-primary" onclick="markAllNotifSeen()">✔ Mark all seen</button>
+                            </div>
+                        </div>
+                        <div class="notif-stats">
+                            <div class="notif-stat"><small>Today's orders</small><b id="nsToday">0</b></div>
+                            <div class="notif-stat"><small>Pending</small><b id="nsPending">0</b></div>
+                            <div class="notif-stat"><small>Payment pending</small><b id="nsPay">0</b></div>
+                            <div class="notif-stat"><small>New (unseen)</small><b id="nsNew">0</b></div>
+                        </div>
+                        <div id="notifList"><p style="color:var(--text-muted);">Loading...</p></div>
+                    </div>
+                </div>
+
+                <div id="backup" class="section-panel">
+                    <div class="card">
+                        <h3>ඩේටාබේස් බැකප් සහ ප්‍රතිස්ථාපනය (Backup & Restore)</h3>
+                        <p style="color: var(--text-muted); margin-top: 10px; margin-bottom: 20px;">
+                            ඔබේ Supabase ඩේටාබේස් එකේ දත්ත JSON ගොනුවක් ලෙස ඩවුන්ලෝඩ් කරගැනීමට සහ ප්‍රතිස්ථාපනය කිරීමට හැකිය.
+                        </p>
+                        <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                            <button onclick="downloadBackup()" class="btn-primary">💾 මුළු ඩේටාබේස් එකම Backup (Download) කරගන්න</button>
+                            <div style="background: var(--sidebar-bg); padding: 15px; border-radius: 10px; border: 1px solid var(--border); flex: 1; min-width: 300px;">
+                                <label style="display: block; margin-bottom: 8px; color: var(--text-muted); font-size: 0.85rem;">පැරණි බැකප් ගොනුවකින් Products, Coupons, Categories Restore කරන්න (JSON File) — Orders / Customers restore වෙන්නේ නැහැ</label>
+                                <input type="file" id="restoreFile" accept=".json" style="margin-bottom: 10px; color: white;">
+                                <button onclick="restoreBackup()" class="btn-danger">🔄 දත්ත Restore කරන්න</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Product Modal -->
+    <div id="editModal" class="modal-bg">
+        <div class="modal-card">
+            <h3>භාණ්ඩයේ තොරතුරු වෙනස් කිරීම (Edit Product)</h3><br>
+            <form id="editProductForm">
+                <input type="hidden" id="editId">
+                <div class="form-group">
+                    <label>නම</label>
+                    <input type="text" id="editName" required>
+                </div>
+                <div class="form-group">
+                    <label>මිළ (LKR)</label>
+                    <input type="number" id="editPrice" min="0" step="any" required oninput="discHint('editPrice','editOrig','editDiscHint')">
+                </div>
+                <div class="form-group">
+                    <label>මුල් මිල (Original price - LKR, හිස් නම් discount නැහැ)</label>
+                    <input type="number" id="editOrig" min="0" step="any" oninput="discHint('editPrice','editOrig','editDiscHint')">
+                    <small id="editDiscHint" style="color:var(--text-muted);"></small>
+                </div>
+                <div class="form-group">
+                    <label>තොගය</label>
+                    <input type="number" id="editStock" min="0" step="1" required>
+                </div>
+                <div class="form-group">
+                    <label>Brand</label>
+                    <input type="text" id="editBrand" placeholder="උදා: Anker, Baseus">
+                </div>
+                <div class="form-group">
+                    <label>Compatible with (කොමාවෙන් වෙන් කරන්න)</label>
+                    <input type="text" id="editCompat" placeholder="උදා: iPhone, Android, Laptop">
+                </div>
+                <div class="form-group">
+                    <label>පින්තූර Links (එක line එකකට එක link — වෙනස් angle ගණනාවක් දාන්න පුළුවන්, පළමු එක main photo)</label>
+                    <textarea id="editImages" rows="4" placeholder="https://.../front.jpg&#10;https://.../side.jpg&#10;https://.../back.jpg" oninput="editImgPreview()"></textarea>
+                    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:8px;">
+                        <input type="file" id="editImageFile" accept="image/png,image/jpeg,image/webp,image/gif" multiple style="display:none" onchange="uploadProductPhotos(this,'editImages','editImageStatus')">
+                        <button type="button" class="btn-success" onclick="document.getElementById('editImageFile').click()">📤 Upload photo (computer එකෙන්)</button>
+                        <span id="editImageStatus" style="font-size:0.85rem;color:var(--text-muted);"></span>
+                    </div>
+                    <div id="editImgPreview" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;"></div>
+                </div>
+                <div class="form-group">
+                    <label>Specs (එක line එකකට එක spec එක)</label>
+                    <textarea id="editSpecs" rows="4" placeholder="512GB NVMe&#10;Read 3500MB/s&#10;5 Year Warranty"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>විස්තරය (Description)</label>
+                    <textarea id="editDesc" rows="4" placeholder="භාණ්ඩය ගැන විස්තරය..."></textarea>
+                </div>
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button type="submit" class="btn-primary" style="flex: 1;">යාවත්කාලීන කරන්න</button>
+                    <button type="button" onclick="closeEditModal()" class="btn-danger" style="flex: 1;">අවලංගු කරන්න</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Customer History Modal -->
+    <div id="customerModal" class="modal-bg">
+        <div class="modal-card">
+            <h3 id="custModalTitle">පාරිභෝගික ඇණවුම් ඉතිහාසය</h3><br>
+            <div id="custOrdersContent">ලෝඩ් වෙමින් පවතී...</div>
+            <br>
+            <button onclick="closeCustomerModal()" class="btn-primary" style="width: 100%;">වසන්න</button>
+        </div>
+    </div>
+
+    <!-- Supabase JavaScript Logic -->
+    <script type="module">
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+        const supabaseUrl = 'https://qugzplavwjphcsvhhmce.supabase.co';
+        const supabaseKey = 'sb_publishable_Yt4U1VouugJzfo1d_CzKxQ_C1bclvcp';
+        const supabase = createClient(supabaseUrl, supabaseKey);
+        // Free-delivery target (used to tag orders that qualified)
+        window.SHIP_TARGET = 0;
+        window.loadShipTarget = async function() {
+            try {
+                const { data } = await supabase.from('site_settings').select('value').eq('key', 'free_ship').maybeSingle();
+                const v = data && data.value;
+                window.SHIP_TARGET = (v && v.enabled && Number(v.target) > 0) ? Number(v.target) : 0;
+            } catch (e) { window.SHIP_TARGET = 0; }
+        };
+        window.loadShipTarget();
+
+        const ALLOWED_ADMIN_EMAIL = 'ishaninduwara340@gmail.com';
+
+        // Initialize EmailJS (Replace with your actual Public Key, Service ID, and Template ID if needed)
+        emailjs.init("reCUFew31YlpPPANs");
+        // ===== Customer status emails (free, EmailJS) =====
+        const EMAILJS_SERVICE_ID_ADMIN = 'service_k80mgqh';
+        const EMAILJS_STATUS_TEMPLATE_ID = 'template_qccheu9'; 
+        const SHOP_WHATSAPP = '0767396487';
+        const ORDER_MAIL_TEXT = {
+            Pending:   ['Order received', 'ඔබගේ ඇණවුම අපට ලැබුණා. දැනට Pending තත්ත්වයේ තියෙනවා.'],
+            Confirmed: ['Order confirmed', 'ඔබගේ ඇණවුම තහවුරු කළා (Confirmed). ඉක්මනින්ම සූදානම් කරලා එවනවා.'],
+            Shipping:  ['Order shipped', 'ඔබගේ ඇණවුම Courier එකට භාර දුන්නා (Shipping). ඉක්මනින්ම ඔබට ලැබෙයි.'],
+            Delivered: ['Order delivered', 'ඔබගේ ඇණවුම ලැබුණා (Delivered). අපෙන් මිලදී ගැනීම ගැන ස්තූතියි!'],
+            Cancelled: ['Order cancelled', 'ඔබගේ ඇණවුම Cancel කළා. ප්‍රශ්නයක් තියෙනවා නම් අපිට WhatsApp කරන්න.']
+        };
+        const PAY_MAIL_TEXT = {
+            Pending:   ['Payment pending', 'ඔබගේ Bank Transfer ගෙවීම තවම අපට ලැබී නැහැ (Payment pending). ගෙවා අවසන් නම් slip එක WhatsApp ' + SHOP_WHATSAPP + ' වෙත එවන්න.'],
+            Confirmed: ['Payment confirmed', 'ඔබගේ ගෙවීම ලැබුණා (Payment confirmed). ස්තූතියි!'],
+            Cancelled: ['Payment cancelled', 'ඔබගේ ගෙවීම තහවුරු කරගන්න බැරි වුණා (Payment cancelled). ප්‍රශ්නයක් නම් WhatsApp ' + SHOP_WHATSAPP + ' වෙත අමතන්න.']
+        };
+        function sendStatusMail(order, kind, status) {
+            try {
+                const email = order && order.customer_email;
+                const t = (kind === 'payment' ? PAY_MAIL_TEXT : ORDER_MAIL_TEXT)[status];
+                if (!email || !t || EMAILJS_STATUS_TEMPLATE_ID.indexOf('YOUR_') === 0) return;
+                emailjs.send(EMAILJS_SERVICE_ID_ADMIN, EMAILJS_STATUS_TEMPLATE_ID, {
+                    to_email: email,
+                    to_name: order.customer_name || 'Customer',
+                    order_id: order.order_number || order.id,
+                    subject_line: t[0] + ' - ' + (order.order_number || order.id),
+                    status_title: t[0],
+                    message: t[1] + (order.tracking_number && status === 'Shipping' ? ' Courier tracking number: ' + order.tracking_number + '.' : ''),
+                    order_summary: (function () { try { return notifItems(order).map(i => (i.name || 'Item') + ' x' + (i.qty || i.quantity || 1) + ' — LKR ' + Number((i.price || 0) * (i.qty || i.quantity || 1)).toLocaleString()).join('<br>') + '<br><b>Total: LKR ' + Number((typeof orderTotal === 'function' ? orderTotal(order) : order.total) || 0).toLocaleString() + '</b>'; } catch (e) { return ''; } })(),
+                    tracking_number: order.tracking_number || ''
+                }).then(() => console.log('Status email sent'), err => console.error('Status email failed:', err));
+            } catch (e) { console.error(e); }
+        }
+
+        // ===== Order Notifications (live) =====
+        const ADMIN_ALERT_FROM_BROWSER = false; // panel open ඉන්නකොට admin Gmail එකට alert mail (SQL v6 දැම්මොත් false කරන්න)
+        let notifSound = true, notifFeed = [], notifNew = new Set(), audioCtx = null;
+        function notifItems(o) {
+            let it = o.items;
+            if (typeof it === 'string') { try { it = JSON.parse(it); } catch (e) { it = []; } }
+            return Array.isArray(it) ? it : [];
+        }
+        function notifItemsText(o) { return notifItems(o).map(i => (i.name || 'Item') + ' x' + (i.qty || i.quantity || 1)).join(', ') || '-'; }
+        function getAudioCtx() {
+            try { audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { return null; }
+            return audioCtx;
+        }
+        // Browser එක sound allow කරන්නේ page එකට පළවෙනි click/key එකෙන් පස්සේ. ඒ නිසා ඒක unlock කරනවා.
+        ['click', 'keydown', 'touchstart'].forEach(ev => document.addEventListener(ev, () => { const c = getAudioCtx(); if (c && c.state === 'suspended') c.resume(); }, { passive: true }));
+        function beep(force) {
+            if (!notifSound && !force) return;
+            const c = getAudioCtx(); if (!c) return;
+            const play = () => {
+                [880, 1175, 880, 1175].forEach((f, k) => {
+                    const o = c.createOscillator(), g = c.createGain();
+                    o.type = 'sine'; o.frequency.value = f; o.connect(g); g.connect(c.destination);
+                    const t = c.currentTime + k * 0.22;
+                    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.5, t + 0.03); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.34);
+                    o.start(t); o.stop(t + 0.36);
+                });
+            };
+            if (c.state === 'suspended') c.resume().then(play).catch(() => {}); else play();
+        }
+        window.beep = beep;
+        window.toggleNotifSound = function() { notifSound = !notifSound; document.getElementById('notifSoundBtn').textContent = '🔊 Sound: ' + (notifSound ? 'ON' : 'OFF'); if (notifSound) beep(true); };
+        window.enableDesktopAlerts = function() {
+            if (!('Notification' in window)) { alert('මේ browser එකේ desktop alerts නැහැ.'); return; }
+            Notification.requestPermission().then(p => alert(p === 'granted' ? 'Desktop alerts ON ✅' : 'Permission දුන්නේ නැහැ.'));
+        };
+        function updateNotifBadge() {
+            const n = notifNew.size, el = document.getElementById('notifNavCount');
+            if (el) { el.textContent = n; el.style.display = n ? 'inline-block' : 'none'; }
+            const nn = document.getElementById('nsNew'); if (nn) nn.textContent = n;
+        }
+        window.markAllNotifSeen = function(silent) { notifNew.clear(); updateNotifBadge(); if (!silent) renderNotifs(); };
+        function notifTimeAgo(t) { const m = Math.floor((Date.now() - new Date(t).getTime()) / 60000); if (isNaN(m)) return ''; if (m < 1) return 'දැන්ම'; if (m < 60) return m + ' min ago'; const h = Math.floor(m / 60); return h < 24 ? h + ' h ago' : Math.floor(h / 24) + ' d ago'; }
+        function renderNotifs() {
+            const box = document.getElementById('notifList'); if (!box) return;
+            const today = new Date().toDateString();
+            document.getElementById('nsToday').textContent = notifFeed.filter(o => new Date(o.created_at || o.createdAt).toDateString() === today).length;
+            document.getElementById('nsPending').textContent = notifFeed.filter(o => normStatus(o.status) === 'Pending').length;
+            document.getElementById('nsPay').textContent = notifFeed.filter(o => isBank(o) && payStatus(o) === 'Pending' && normStatus(o.status) !== 'Cancelled').length;
+            updateNotifBadge();
+            if (!notifFeed.length) { box.innerHTML = '<p style="color:var(--text-muted);">තවම orders නැහැ.</p>'; return; }
+            box.innerHTML = notifFeed.map(o => {
+                const isNew = notifNew.has(String(o.id));
+                const total = (typeof orderTotal === 'function') ? orderTotal(o) : (o.total || 0);
+                const t = o.created_at || o.createdAt;
+                const st = normStatus(o.status);
+                return `<div class="notif-item ${isNew ? 'is-new' : ''}">
+                    <div class="notif-ico">${isBank(o) ? '🏦' : '🛒'}</div>
+                    <div class="notif-body">
+                        <h4>${escapeHTML(o.customer_name || 'Customer')} <small style="color:#888899;">${escapeHTML(String(o.order_number || ''))}</small>${isNew ? '<span class="notif-new-tag">NEW</span>' : ''}</h4>
+                        <p>${escapeHTML(notifItemsText(o))}</p>
+                        <p>📞 ${escapeHTML(o.customer_phone || '-')} · ✉️ ${escapeHTML(o.customer_email || '-')} · 💳 ${escapeHTML(o.payment_method || '-')}</p>
+                    </div>
+                    <div class="notif-side">
+                        <span class="t">${escapeHTML(notifTimeAgo(t))}</span>
+                        <b>LKR ${Number(total).toLocaleString()}</b><br>
+                        <span class="badge ${st === 'Pending' ? 'badge-pending' : st === 'Cancelled' ? 'badge-cancelled' : st === 'Delivered' ? 'badge-delivered' : 'badge-confirmed'}" style="margin:6px 0;display:inline-block;">${escapeHTML(st)}</span><br>
+                        <button class="btn-primary" style="padding:5px 12px;font-size:.72rem;" onclick="switchTab('orders')">Open orders</button>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+        // ===== Polling backup (Realtime off / fail unath wada karanawa) =====
+        const ORDER_POLL_MS = 15000; // තත්පර 15
+        const knownOrderIds = new Set();
+        let orderBaselineReady = false, orderPollBusy = false;
+        // DB eken latest orders aran, aluth ewa thiyenawanam onNewOrder() call karanawa (beep + toast)
+        async function checkNewOrders() {
+            if (orderPollBusy) return;
+            orderPollBusy = true;
+            try {
+                const { data, error } = await supabase.from('orders').select('*').order('created_at', { ascending: false }).limit(40);
+                if (error || !data) return;
+                if (!orderBaselineReady) {
+                    // Mulin ma load wenakota thiyena orders "dannawa" – sound eka dammoth bohoma beep wenawa
+                    data.forEach(o => knownOrderIds.add(String(o.id)));
+                    notifFeed = data;
+                    orderBaselineReady = true;
+                } else {
+                    const fresh = data.filter(o => !knownOrderIds.has(String(o.id))).reverse(); // pala order eka issella
+                    fresh.forEach(o => { try { onNewOrder(o); } catch (e) { console.warn(e); } });
+                    if (fresh.length) {
+                        try { loadDashboardStats(); renderCharts(); } catch (e) {}
+                        if (document.getElementById('orders')?.classList.contains('active')) { try { loadOrders(); } catch (e) {} }
+                    }
+                }
+            } catch (e) { console.warn('Order polling failed:', e); }
+            finally { orderPollBusy = false; }
+        }
+        window.loadOrderAlerts = async function() {
+            await checkNewOrders();
+            renderNotifs();
+        };
+        // Admin login wela inna welawata witharak poll karanawa
+        setInterval(() => {
+            const dw = document.getElementById('dashboardWrapper');
+            if (!dw || dw.style.display === 'none') return;
+            checkNewOrders();
+        }, ORDER_POLL_MS);
+        // Tab ekata ආපහු ආපු gaman ma check karanawa
+        document.addEventListener('visibilitychange', () => { if (!document.hidden) checkNewOrders(); });
+        function onNewOrder(o) {
+            if (!o) return;
+            // Realtime + polling dekama ekama order eka ganna bari nisa duplicate beep nawaththanawa
+            if (knownOrderIds.has(String(o.id))) return;
+            knownOrderIds.add(String(o.id));
+            if (!notifFeed.some(x => String(x.id) === String(o.id))) notifFeed.unshift(o);
+            const active = document.getElementById('orderAlerts')?.classList.contains('active');
+            if (!active) notifNew.add(String(o.id)); else notifNew.add(String(o.id));
+            beep();
+            const total = (typeof orderTotal === 'function') ? orderTotal(o) : (o.total || 0);
+            const tip = document.createElement('div'); tip.className = 'notif-toast';
+            tip.innerHTML = '<b>🔔 අලුත් Order එකක්!</b><br>' + escapeHTML(o.customer_name || 'Customer') + ' — LKR ' + Number(total).toLocaleString();
+            tip.onclick = () => { switchTab('orderAlerts'); tip.remove(); };
+            document.body.appendChild(tip); setTimeout(() => tip.remove(), 8000);
+            try { if ('Notification' in window && Notification.permission === 'granted') new Notification('🔔 New order', { body: (o.customer_name || 'Customer') + ' — LKR ' + Number(total).toLocaleString() }); } catch (e) {}
+            if (ADMIN_ALERT_FROM_BROWSER && EMAILJS_STATUS_TEMPLATE_ID.indexOf('YOUR_') !== 0) {
+                try {
+                    emailjs.send(EMAILJS_SERVICE_ID_ADMIN, EMAILJS_STATUS_TEMPLATE_ID, {
+                        to_email: ALLOWED_ADMIN_EMAIL, to_name: 'Admin', order_id: o.order_number || o.id,
+                        subject_line: 'NEW ORDER - ' + (o.order_number || o.id), status_title: 'New order',
+                        message: (o.customer_name || 'Customer') + ' (' + (o.customer_phone || '-') + ') — ' + notifItemsText(o) + ' — LKR ' + Number(total).toLocaleString() + ' — ' + (o.payment_method || '-')
+                    }).catch(() => {});
+                } catch (e) {}
+            }
+            renderNotifs();
+        }
+        setInterval(() => { if (document.getElementById('orderAlerts')?.classList.contains('active')) renderNotifs(); }, 60000);
+        setTimeout(() => { try { loadOrderAlerts(); } catch (e) {} }, 2500);
+
+        // ===== Tracking number + internal note =====
+        window.editOrderNote = async function(id) {
+            const o = allOrdersData.find(x => String(x.id) === String(id)); if (!o) return;
+            const v = prompt('Internal note (customer ට පේන්නේ නැහැ):', o.admin_note || ''); if (v === null) return;
+            const { error } = await supabase.from('orders').update({ admin_note: v.trim() || null }).eq('id', id);
+            if (error) { alert('Note save කරන්න බැරි වුණා: ' + error.message + '\n(SQL v6 එකේ ALTER TABLE කොටස run කරලා නැද්ද?)'); return; }
+            o.admin_note = v.trim() || null; renderOrderTable();
+        };
+        window.editTracking = async function(id) {
+            const o = allOrdersData.find(x => String(x.id) === String(id)); if (!o) return;
+            const v = prompt('Courier tracking number:', o.tracking_number || ''); if (v === null) return;
+            const { error } = await supabase.from('orders').update({ tracking_number: v.trim() || null }).eq('id', id);
+            if (error) { alert('Tracking save කරන්න බැරි වුණා: ' + error.message + '\n(SQL v6 එකේ ALTER TABLE කොටස run කරලා නැද්ද?)'); return; }
+            o.tracking_number = v.trim() || null; renderOrderTable();
+        };
+
+        const loginWrapper = document.getElementById('loginWrapper');
+        const dashboardWrapper = document.getElementById('dashboardWrapper');
+
+        let allProductsData = [];
+        let allOrdersData = [];
+        let allCustomersData = [];
+        let currentProductPage = 1;
+        let currentOrderPage = 1;
+        const rowsPerPage = 5;
+
+        // Escapes text before it's dropped into innerHTML, so product/customer
+        // names containing quotes, & or <> never break the row markup or any
+        // inline onclick handlers (this was the root cause of the "Update
+        // Product" button going unresponsive for certain product names).
+        function escapeHTML(str) {
+            return String(str == null ? '' : str).replace(/[&<>'"]/g,
+                tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
+            );
+        }
+        // Deterministic text -> slug conversion — MUST stay identical to the
+        // storefront's own slugify() in index.html, since the storefront
+        // uses this exact algorithm as a fallback whenever a row/product
+        // has no explicit slug/cat column. Keeping both in lockstep is what
+        // makes a category typed here always line up with the same filter
+        // pill on the customer site.
+        function slugify(str) {
+            return String(str || '')
+                .trim()
+                .toLowerCase()
+                .replace(/[^a-z0-9]+/g, '-')
+                .replace(/^-+|-+$/g, '');
+        }
+
+        // Cache of the categories currently in the DB, normalized with a
+        // slug (real column if present, else derived from the name) and
+        // deduped so the same category never appears twice in the dropdown
+        // or the management table even if old duplicate rows still exist.
+        let allCategoriesData = [];
+
+        function loadCategoriesCache(rawRows) {
+            const bySlug = new Map();
+            (rawRows || []).forEach(row => {
+                const slug = String(row.slug || slugify(row.name)).toLowerCase();
+                if (!slug) return;
+                if (!bySlug.has(slug)) bySlug.set(slug, { ...row, slug, _duplicateIds: [] });
+                else bySlug.get(slug)._duplicateIds.push(row.id);
+            });
+            allCategoriesData = Array.from(bySlug.values()).sort((a, b) => String(a.name).localeCompare(String(b.name)));
+            return allCategoriesData;
+        }
+
+        function categoryNameForSlug(slug) {
+            const found = allCategoriesData.find(c => c.slug === slug);
+            return found ? found.name : slug;
+        }
+
+        // Orders may have both a legacy `total` column and `total_amount`;
+        // always prefer total_amount but gracefully fall back to total so the
+        // admin panel never shows null/0 for a real order.
+        function orderTotal(o) {
+            const v = (o.total_amount !== null && o.total_amount !== undefined && o.total_amount !== '') ? o.total_amount : o.total;
+            const n = parseFloat(v);
+            return isNaN(n) ? 0 : n;
+        }
+
+        let statusChartInstance = null;
+        let categoryChartInstance = null;
+
+        // Tab Switching Function
+        window.normStatus = function(st) { const t = String(st || 'Pending').toLowerCase(); return t.charAt(0).toUpperCase() + t.slice(1); };
+        window.switchTab = function(tabId) {
+            document.querySelectorAll('.section-panel').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            
+            document.getElementById(tabId).classList.add('active');
+            document.querySelectorAll('.nav-btn').forEach(b => { const oc = b.getAttribute('onclick') || ''; if (oc.indexOf("switchTab('" + tabId + "')") !== -1) b.classList.add('active'); });
+
+            if(tabId === 'addProduct') loadCategoriesDropdown();
+            if(tabId === 'manageProducts') loadProducts();
+            if(tabId === 'manageCategories') loadCategories();
+            if(tabId === 'orders') loadOrders();
+            if(tabId === 'orderAlerts') { loadOrderAlerts(); markAllNotifSeen(true); }
+            if(tabId === 'customers') loadCustomers();
+            if(tabId === 'coupons') loadCoupons();
+            if(tabId === 'offerSettings') { loadOfferSettings(); loadShipSettings(); }
+            if(tabId === 'adsManager') loadAds();
+            if(tabId === 'reviewsManager') loadReviews();
+            if(tabId === 'dashboardStats') { loadDashboardStats(); renderCharts(); }
+        }
+
+        // Check Session on Load
+        async function checkSession() {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) {
+                loginWrapper.style.display = 'flex';
+                dashboardWrapper.style.display = 'none';
+            } else if (session.user.email !== ALLOWED_ADMIN_EMAIL) {
+                alert('අවසර නැත! ඔබ ඇඩ්මින් කෙනෙකු නොවේ.');
+                await supabase.auth.signOut();
+                window.location.href = 'index.html';
+            } else {
+                loginWrapper.style.display = 'none';
+                dashboardWrapper.style.display = 'flex';
+                loadCategoriesDropdown();
+                loadProducts();
+                loadDashboardStats();
+                checkLowStockAlerts();
+                subscribeRealtime();
+            }
+        }
+        checkSession();
+
+        // Live-refresh the panel whenever the storefront (or another admin
+        // session) writes to orders/products, so the dashboard, low-stock
+        // banner and whichever tab is open never go stale.
+        function subscribeRealtime() {
+            try {
+                supabase
+                    .channel('admin-live-updates')
+                    .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, () => {
+                        if (document.getElementById('orders')?.classList.contains('active')) loadOrders();
+                        loadDashboardStats();
+                        renderCharts();
+                    })
+                    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'orders' }, (payload) => { try { onNewOrder(payload.new); } catch (e) { console.warn(e); } })
+                    .on('postgres_changes', { event: '*', schema: 'public', table: 'products' }, () => {
+                        if (document.getElementById('manageProducts')?.classList.contains('active')) loadProducts();
+                        checkLowStockAlerts();
+                        loadDashboardStats();
+                    })
+                    .subscribe();
+            } catch (e) {
+                console.warn('Realtime subscription failed (panel still works without it):', e);
+            }
+        }
+
+        // Login Action
+        document.getElementById('loginBtn').addEventListener('click', async () => {
+            const email = document.getElementById('adminEmail').value.trim();
+            const password = document.getElementById('adminPassword').value;
+
+            if (email !== ALLOWED_ADMIN_EMAIL) {
+                alert('දෝෂයයි: මෙම ඊමේල් ලිපිනයට ඇඩ්මින් ප්‍රවේශය නැත!');
+                return;
+            }
+
+            const { error } = await supabase.auth.signInWithPassword({ email, password });
+            if (error) {
+                alert('Login වීම අසාර්ථකයි: ' + error.message);
+            } else {
+                location.reload();
+            }
+        });
+
+        // Logout Action
+        document.getElementById('logoutBtn').addEventListener('click', async () => {
+            await supabase.auth.signOut();
+            window.location.href = 'index.html';
+        });
+
+        // Dynamic Categories Dropdown & Management
+        async function loadCategoriesDropdown() {
+            const selectEl = document.getElementById('pCategory');
+            const { data, error } = await supabase.from('categories').select('*');
+            if (error || !data || !data.length) {
+                selectEl.innerHTML = `<option value="processors">Processors</option><option value="graphics-cards">Graphics Cards</option>`;
+                return;
+            }
+            const cats = loadCategoriesCache(data);
+            selectEl.innerHTML = '';
+            // The option VALUE is the stable slug (linked to products via
+            // the `cat` column); the visible text is the human name. Since
+            // allCategoriesData is already deduped by slug, the same
+            // category can never show up twice here even if the DB still
+            // has old duplicate rows sitting in it.
+            cats.forEach(cat => {
+                selectEl.innerHTML += `<option value="${escapeHTML(cat.slug)}">${escapeHTML(cat.name)}</option>`;
+            });
+        }
+
+        async function loadCategories() {
+            const tbody = document.getElementById('categoriesTableBody');
+            tbody.innerHTML = '<tr><td colspan="3">ලෝඩ් වෙමින් පවතී...</td></tr>';
+            const { data, error } = await supabase.from('categories').select('*');
+            if (error) { tbody.innerHTML = `<tr><td colspan="3">දෝෂයකි</td></tr>`; return; }
+            const cats = loadCategoriesCache(data);
+            tbody.innerHTML = cats.length === 0 ? '<tr><td colspan="3">ප්‍රවර්ග නැත.</td></tr>' : '';
+            cats.forEach(item => {
+                // _duplicateIds lists any OTHER raw DB rows that collapsed
+                // into this same slug (e.g. "GPU" typed twice before this
+                // fix) — flag them so the admin can spot and clean up the
+                // leftover rows with the existing Delete button.
+                const dupWarning = item._duplicateIds.length
+                    ? `<br><small style="color: var(--danger);">⚠️ ${item._duplicateIds.length} duplicate row(s) with this same name still exist in the DB — safe to delete the extras.</small>`
+                    : '';
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${escapeHTML(item.name)}${dupWarning}</td>
+                        <td class="mono" style="color: var(--text-muted); font-size: 0.8rem;">${escapeHTML(item.slug)}</td>
+                        <td><button class="btn-danger" onclick="deleteCategory('${item.id}')">🗑️ Delete</button></td>
+                    </tr>`;
+            });
+        }
+
+        document.getElementById('categoryForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const name = document.getElementById('catName').value.trim();
+            const slug = slugify(name);
+            if (!name || !slug) { alert('කරුණාකර වලංගු ප්‍රවර්ග නමක් ඇතුළත් කරන්න.'); return; }
+
+            // Prevent the exact bug the storefront was suffering from:
+            // re-adding "the same" category (even with different
+            // capitalization/spacing) used to silently create a brand new
+            // DB row every time, which then showed up as a duplicate pill.
+            // Refresh the cache first so this check is against current data.
+            const { data: existingRows } = await supabase.from('categories').select('*');
+            const existing = loadCategoriesCache(existingRows || []).find(c => c.slug === slug);
+            if (existing) {
+                alert(`⚠️ "${existing.name}" නමින් ප්‍රවර්ගයක් දැනටමත් තිබේ. එකම ප්‍රවර්ගය දෙවතාවක් එකතු නොකෙරේ.`);
+                return;
+            }
+
+            let { error } = await supabase.from('categories').insert([{ name, slug }]);
+            if (error && /column .*slug.* does not exist|could not find.*slug/i.test(error.message || '')) {
+                // The `categories` table hasn't been migrated to add a
+                // `slug` column yet — insert without it. The storefront
+                // still works correctly via its own slugify(name) fallback,
+                // but for full duplicate-prevention at the DB level too,
+                // run: ALTER TABLE categories ADD COLUMN slug text UNIQUE;
+                console.warn('`categories.slug` column missing — inserted name-only. See the note in the delivered fix about adding this column.');
+                ({ error } = await supabase.from('categories').insert([{ name }]));
+            }
+            if (error) alert('දෝෂයකි: ' + error.message);
+            else { alert('ප්‍රවර්ගය සාර්ථකව එකතු කරන ලදී!'); document.getElementById('categoryForm').reset(); loadCategories(); loadCategoriesDropdown(); }
+        });
+
+        window.deleteCategory = async function(id) {
+            if(!confirm('මෙම ප්‍රවර්ගය ඉවත් කිරීමට අවශ්‍ය බව සැබෑද?')) return;
+            const { error } = await supabase.from('categories').delete().eq('id', id);
+            if(error) alert('දෝෂයකි: ' + error.message);
+            else { alert('ප්‍රවර්ගය ඉවත් කරන ලදී!'); loadCategories(); loadCategoriesDropdown(); }
+        }
+
+        // Low Stock Alert Checker
+        async function checkLowStockAlerts() {
+            const { data } = await fetchAllRows('products');
+            if (data) {
+                const lowStockItems = data.filter(item => item.stock < 5);
+                const banner = document.getElementById('stockAlertBanner');
+                if (lowStockItems.length > 0) {
+                    document.getElementById('stockAlertText').innerText = `⚠️ අවධානයයි! භාණ්ඩ ${lowStockItems.length} ක තොග අවම මට්ටමක පවතී (< 5).`;
+                    banner.style.display = 'flex';
+                    try {
+                        if (EMAILJS_STATUS_TEMPLATE_ID.indexOf('YOUR_') !== 0) {
+                            lowStockItems.filter(p => (p.stock || 0) <= 3).forEach(p => {
+                                const key = 'lowmail_' + p.id + '_' + (p.stock || 0);
+                                if (localStorage.getItem(key)) return;
+                                localStorage.setItem(key, '1');
+                                emailjs.send(EMAILJS_SERVICE_ID_ADMIN, EMAILJS_STATUS_TEMPLATE_ID, { to_email: ALLOWED_ADMIN_EMAIL, to_name: 'Admin', order_id: '-', subject_line: 'LOW STOCK - ' + p.name, status_title: 'Low stock', message: p.name + ' — stock ' + (p.stock || 0) + ' ක් පමණක් ඉතිරියි.' }).catch(() => {});
+                            });
+                        }
+                    } catch (e) {}
+                } else {
+                    banner.style.display = 'none';
+                }
+            }
+        }
+
+        // 1. Add Product
+        document.getElementById('productForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const name = document.getElementById('pName').value.trim();
+            const price = parseFloat(document.getElementById('pPrice').value);
+            const category = document.getElementById('pCategory').value;
+            const stock = parseInt(document.getElementById('pStock').value, 10);
+            const description = document.getElementById('pDesc').value.trim();
+            const brand = document.getElementById('pBrand').value.trim();
+            const compat = document.getElementById('pCompat').value.split(',').map(t => t.trim()).filter(Boolean).join(', ');
+            const image_url = document.getElementById('pImage').value.split(/[\s|]+/).filter(Boolean).slice(0, 10).join('\n');
+            const origRaw = document.getElementById('pOrig').value.trim();
+            const orig = origRaw === '' ? null : parseFloat(origRaw);
+            const specs = parseSpecs(document.getElementById('pSpecs').value);
+            if (orig !== null && (isNaN(orig) || orig < price)) { alert('මුල් මිල, විකුණන මිලට වඩා අඩු විය නොහැක (හෝ හිස්ව තියන්න).'); return; }
+
+            if (!name || isNaN(price) || isNaN(stock)) { alert('කරුණාකර නම, මිළ සහ තොගය නිවැරදිව පුරවන්න.'); return; }
+            if (price < 0 || stock < 0) { alert('මිළ සහ තොගය සෘණ (negative) අගයන් විය නොහැක.'); return; }
+
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            if (submitBtn) submitBtn.disabled = true;
+            try {
+                const { data, error } = await supabase.from('products')
+                    .insert([Object.assign({ name, price, category, stock, description, image_url }, v33CostPart(), brand ? { brand } : {}, compat ? { compat } : {}, (orig !== null && orig > price) ? { orig } : {}, specs.length ? { specs } : {})])
+                    .select();
+                if (error) {
+                    alert('දෝෂයකි: ' + error.message);
+                } else if (!data || data.length === 0) {
+                    alert('එකතු කිරීම අසාර්ථකයි: ඔබට මෙම ක්‍රියාව සිදු කිරීමට අවසර නැත (RLS policy පරීක්ෂා කරන්න).');
+                } else {
+                    alert('භාණ්ඩය සාර්ථකව එකතු කරන ලදී!');
+                    document.getElementById('productForm').reset();
+                    addImgPreview();
+                    document.getElementById('pDiscHint').textContent = '';
+                    document.getElementById('pImageStatus').textContent = '';
+                    loadDashboardStats();
+                    checkLowStockAlerts();
+                }
+            } catch (err) {
+                console.error('Add product exception:', err);
+                alert('දෝෂයකි: ' + err.message);
+            } finally {
+                if (submitBtn) submitBtn.disabled = false;
+            }
+        });
+
+        // Load Products with Pagination & Filtering
+        // Supabase returns at most 1000 rows per request — fetch every page so nothing silently disappears.
+        async function fetchAllRows(table) {
+            const size = 1000; let from = 0, all = [];
+            while (true) {
+                const { data, error } = await supabase.from(table).select('*').order('id', { ascending: true }).range(from, from + size - 1);
+                if (error) return { data: null, error };
+                all = all.concat(data || []);
+                if (!data || data.length < size) break;
+                from += size;
+            }
+            return { data: all, error: null };
+        }
+
+        async function loadProducts() {
+            const tbody = document.getElementById('productTableBody');
+            tbody.innerHTML = '<tr><td colspan="5">ලෝඩ් වෙමින් පවතී...</td></tr>';
+            const { data, error } = await fetchAllRows('products');
+            if (error) { tbody.innerHTML = `<tr><td colspan="5">දෝෂයකි</td></tr>`; return; }
+            allProductsData = data || [];
+            renderProductTable();
+        }
+
+        window.filterProductsTable = function() {
+            currentProductPage = 1;
+            renderProductTable();
+        }
+
+        function renderProductTable() {
+            const tbody = document.getElementById('productTableBody');
+            const searchVal = (document.getElementById('productSearchInput')?.value || '').toLowerCase();
+
+            const filtered = allProductsData.filter(item => String(item.name || '').toLowerCase().includes(searchVal));
+            const start = (currentProductPage - 1) * rowsPerPage;
+            const paginated = filtered.slice(start, start + rowsPerPage);
+
+            tbody.innerHTML = paginated.length === 0 ? '<tr><td colspan="5">භාණ්ඩ නැත.</td></tr>' : '';
+
+            paginated.forEach(item => {
+                let stockBadge = item.stock < 5 ? `<span class="badge badge-lowstock">${item.stock} (Low)</span>` : `<span style="color:var(--success)">${item.stock}</span>`;
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${escapeHTML(item.name)}</td>
+                        <td>LKR ${Number(item.price || 0).toLocaleString()}</td>
+                        <td>${escapeHTML(item.category) || '-'}</td>
+                        <td>${stockBadge}</td>
+                        <td>
+                            <button class="btn-primary" onclick="openEditModal('${item.id}')">✏️ Edit</button>
+                            <button class="btn-danger" onclick="deleteProduct('${item.id}')">🗑️ Delete</button>
+                        </td>
+                    </tr>`;
+            });
+            renderProductPagination(filtered.length);
+        }
+
+        function renderProductPagination(totalRows) {
+            const paginationEl = document.getElementById('productPagination');
+            const totalPages = Math.ceil(totalRows / rowsPerPage);
+            paginationEl.innerHTML = '';
+            for(let i = 1; i <= totalPages; i++) {
+                paginationEl.innerHTML += `<button class="${i === currentProductPage ? 'active' : ''}" onclick="changeProductPage(${i})">${i}</button>`;
+            }
+        }
+
+        window.changeProductPage = function(page) {
+            currentProductPage = page;
+            renderProductTable();
+        }
+
+        // Delete Product
+        window.deleteProduct = async function(id) {
+            if(!confirm('මෙම භාණ්ඩය ඉවත් කිරීමට අවශ්‍ය බව සැබෑද?')) return;
+            const item = allProductsData.find(p => String(p.id) === String(id));
+            const urls = String((item && (item.image_url || item.img)) || '').split(/[\s|]+/).filter(Boolean);
+            const { error } = await supabase.from('products').delete().eq('id', id);
+            if(error) alert('දෝෂයකි: ' + error.message);
+            else {
+                // Best effort: also remove this product's photos from the "products" bucket, unless another product still uses the same link
+                let photoMsg = '';
+                try {
+                    const marker = '/' + PRODUCT_IMG_BUCKET + '/';
+                    const stillUsed = new Set();
+                    allProductsData.filter(p => String(p.id) !== String(id)).forEach(p =>
+                        String(p.image_url || p.img || '').split(/[\s|]+/).forEach(u => { if (u) stillUsed.add(u); }));
+                    const paths = urls.filter(u => u.indexOf(marker) !== -1 && !stillUsed.has(u))
+                        .map(u => decodeURIComponent(u.substring(u.indexOf(marker) + marker.length).split('?')[0]));
+                    if (paths.length) {
+                        const { data: removed, error: rmErr } = await supabase.storage.from(PRODUCT_IMG_BUCKET).remove(paths);
+                        console.log('Storage delete:', paths, removed, rmErr);
+                        if (rmErr) photoMsg = '\n\n⚠ Photo ' + paths.length + ' Storage එකෙන් මැකුවේ නැහැ: ' + rmErr.message;
+                        else if (!removed || removed.length < paths.length) photoMsg = '\n\n⚠ Photo ' + (paths.length - (removed ? removed.length : 0)) + ' ක් Storage එකෙන් මැකුවේ නැහැ (Supabase Storage එකේ DELETE policy එකක් නැති නිසා වෙන්න පුළුවන්).';
+                        else photoMsg = '\n✔ Photo ' + removed.length + ' ක් Storage එකෙන් ද මැකුවා.';
+                    } else if (urls.length) {
+                        photoMsg = '\n(Photo links "' + PRODUCT_IMG_BUCKET + '" bucket එකේ ඒවා නෙවෙයි, නැත්නම් වෙන භාණ්ඩයක් පාවිච්චි කරන නිසා Storage එකෙන් මැකුවේ නැහැ.)';
+                    }
+                } catch (e) { console.warn('Photo cleanup failed:', e); photoMsg = '\n\n⚠ Photo මැකීම අසාර්ථකයි: ' + (e.message || e); }
+                alert('භාණ්ඩය ඉවත් කරන ලදී!' + photoMsg); loadProducts(); loadDashboardStats(); checkLowStockAlerts();
+            }
+        }
+
+
+        // ===== Product photo upload (computer -> Supabase Storage -> link auto-filled) =====
+        // Saved in the public "products" bucket (root), same place as the older product photos.
+        const PRODUCT_IMG_BUCKET = 'products';
+        // Numbers already used by files named like 1.jpg, 2.webp ... in the bucket root (any extension)
+        async function usedPhotoNumbers() {
+            const used = new Set();
+            let offset = 0;
+            for (let guard = 0; guard < 20; guard++) {
+                const { data, error } = await supabase.storage.from(PRODUCT_IMG_BUCKET).list('', { limit: 1000, offset });
+                if (error) throw error;
+                (data || []).forEach(f => { const m = /^(\d{1,6})\.[a-z0-9]+$/i.exec(f.name || ''); if (m) used.add(parseInt(m[1], 10)); });
+                if (!data || data.length < 1000) break;
+                offset += 1000;
+            }
+            return used;
+        }
+        async function uploadProductImage(file) {
+            const allowed = ['image/png', 'image/jpeg', 'image/webp', 'image/gif'];
+            if (!allowed.includes(file.type)) throw new Error('PNG, JPG, WebP හෝ GIF පින්තූර පමණක් අවසර ඇත.');
+            if (file.size > 3 * 1024 * 1024) throw new Error('පින්තූරය 3MB ට වඩා විශාල විය නොහැක.');
+            const ext = (file.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg';
+            // Always start from 1 and take the first number that is free in ANY extension (jpg/jpeg/png/webp/gif).
+            // 1) Bucket listing (fast). 2) If listing is empty/blocked, or to double-check, probe the public URLs.
+            let used = new Set();
+            try { used = await usedPhotoNumbers(); } catch (e) { console.warn('Could not list bucket:', e); }
+            const exts = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
+            const numberTaken = async (num) => {
+                const hits = await Promise.all(exts.map(async x => {
+                    try {
+                        const u = supabase.storage.from(PRODUCT_IMG_BUCKET).getPublicUrl(`${num}.${x}`).data.publicUrl + '?chk=' + Date.now();
+                        const r = await fetch(u, { method: 'HEAD', cache: 'no-store' });
+                        return r.ok;
+                    } catch (e) { return false; }
+                }));
+                return hits.some(Boolean);
+            };
+            let n = 0;
+            for (let attempt = 0; attempt < 80; attempt++) {
+                n++;
+                while (used.has(n)) n++;
+                if (await numberTaken(n)) { used.add(n); continue; }
+                const path = `${n}.${ext}`;
+                const { error } = await supabase.storage.from(PRODUCT_IMG_BUCKET).upload(path, file, { cacheControl: '3600', upsert: false, contentType: file.type });
+                if (!error) return supabase.storage.from(PRODUCT_IMG_BUCKET).getPublicUrl(path).data.publicUrl;
+                if (!(String(error.statusCode) === '409' || /exist|duplicate/i.test(error.message || ''))) throw error;
+                used.add(n);
+            }
+            throw new Error('අලුත් file නමක් හදන්න බැරි වුණා. නැවත උත්සාහ කරන්න.');
+        }
+        window.uploadProductPhotos = async function(input, textareaId, statusId) {
+            const files = Array.from(input.files || []);
+            if (!files.length) return;
+            const ta = document.getElementById(textareaId), st = document.getElementById(statusId);
+            const existing = String(ta.value || '').split(/[\s|]+/).filter(Boolean);
+            if (existing.length + files.length > 10) {
+                alert('එක භාණ්ඩයකට පින්තූර 10කට වඩා දාන්න බැහැ.');
+                input.value = ''; return;
+            }
+            const urls = [], errors = [];
+            for (let i = 0; i < files.length; i++) {
+                st.style.color = 'var(--text-muted)';
+                st.textContent = `Upload වෙමින්... ${i + 1}/${files.length}`;
+                try { urls.push(await uploadProductImage(files[i])); }
+                catch (err) { console.error('Photo upload failed:', err); errors.push(files[i].name + ': ' + (err.message || err)); }
+            }
+            ta.value = existing.concat(urls).join('\n');
+            ta.dispatchEvent(new Event('input'));
+            if (errors.length) { st.style.color = 'var(--danger)'; st.textContent = `✖ ${errors.length} ක් අසාර්ථකයි`; alert('Upload අසාර්ථක වුණා:\n' + errors.join('\n')); }
+            else { st.style.color = 'var(--success)'; st.textContent = `✔ පින්තූර ${urls.length} ක් upload වුණා`; }
+            input.value = '';
+        };
+        window.addImgPreview = function() {
+            const box = document.getElementById('pImgPreview');
+            if (!box) return;
+            box.innerHTML = '';
+            String(document.getElementById('pImage').value || '').split(/[\s|]+/).filter(Boolean).slice(0, 10).forEach((u, i) => {
+                if (!/^https?:\/\//i.test(u)) return;
+                const im = document.createElement('img');
+                im.src = u; im.alt = 'Photo ' + (i + 1); im.title = i === 0 ? 'Main photo' : 'Photo ' + (i + 1);
+                im.style.cssText = 'width:64px;height:64px;object-fit:contain;border-radius:8px;background:#000;border:1.5px solid ' + (i === 0 ? 'var(--accent)' : 'var(--border)');
+                im.onerror = function() { this.style.opacity = '.25'; this.title = 'Link එක වැඩ නෑ'; };
+                box.appendChild(im);
+            });
+        };
+
+
+        // ===== Original price (orig) + Specs helpers =====
+        window.discHint = function(priceId, origId, hintId) {
+            const p = parseFloat(document.getElementById(priceId).value), o = parseFloat(document.getElementById(origId).value);
+            const h = document.getElementById(hintId);
+            if (!h) return;
+            if (p > 0 && o > p) { h.style.color = 'var(--success)'; h.textContent = 'Product page එකේ ' + Math.round((1 - p / o) * 100) + '% OFF ලෙස පෙන්වයි'; }
+            else if (o > 0 && o < p) { h.style.color = 'var(--danger)'; h.textContent = 'මුල් මිල, විකුණන මිලට වඩා අඩු විය නොහැක'; }
+            else h.textContent = '';
+        };
+        function parseSpecs(txt) {
+            return String(txt || '').split(/\r?\n/).map(t => t.trim().slice(0, 120)).filter(Boolean).slice(0, 12);
+        }
+
+        // Edit Modal Control
+        window.openEditModal = function(id) {
+            const item = allProductsData.find(p => String(p.id) === String(id));
+            if (!item) { alert('භාණ්ඩය හමු නොවීය. නැවත Load කරන්න.'); return; }
+            document.getElementById('editId').value = item.id;
+            document.getElementById('editName').value = item.name;
+            document.getElementById('editPrice').value = item.price;
+            document.getElementById('editStock').value = item.stock;
+            document.getElementById('editImages').value = String(item.image_url || item.img || '').split(/[\s|]+/).filter(Boolean).join('\n');
+            document.getElementById('editDesc').value = item.description || item.desc || '';
+            document.getElementById('editBrand').value = item.brand || '';
+            document.getElementById('editCompat').value = item.compat || '';
+            document.getElementById('editOrig').value = (item.orig !== null && item.orig !== undefined && Number(item.orig) > 0) ? item.orig : '';
+            document.getElementById('editSpecs').value = (Array.isArray(item.specs) ? item.specs : []).join('\n');
+            discHint('editPrice', 'editOrig', 'editDiscHint');
+            window._editHad = { brand: !!item.brand, compat: !!item.compat, orig: Number(item.orig) > 0, specs: Array.isArray(item.specs) && item.specs.length > 0 };
+            editImgPreview();
+            document.getElementById('editImageStatus').textContent = '';
+            document.getElementById('editModal').style.display = 'flex';
+        }
+
+        function editImgLinks() {
+            const seen = [];
+            String(document.getElementById('editImages').value || '').split(/[\s|]+/).forEach(u => { u = u.trim(); if (u && seen.indexOf(u) < 0) seen.push(u); });
+            return seen.slice(0, 10);
+        }
+        window.editImgPreview = function() {
+            const box = document.getElementById('editImgPreview');
+            box.innerHTML = '';
+            editImgLinks().forEach((u, i) => {
+                if (!/^https?:\/\//i.test(u)) return;
+                const im = document.createElement('img');
+                im.src = u; im.alt = 'Photo ' + (i + 1); im.title = i === 0 ? 'Main photo' : 'Photo ' + (i + 1);
+                im.style.cssText = 'width:64px;height:64px;object-fit:contain;border-radius:8px;background:#000;border:1.5px solid ' + (i === 0 ? 'var(--accent)' : 'var(--border)');
+                im.onerror = function() { this.style.opacity = '.25'; this.title = 'Link එක වැඩ නෑ'; };
+                box.appendChild(im);
+            });
+        }
+
+        window.closeEditModal = function() {
+            document.getElementById('editModal').style.display = 'none';
+        }
+
+        document.getElementById('editProductForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            const id = document.getElementById('editId').value;
+            const name = document.getElementById('editName').value.trim();
+            const price = parseFloat(document.getElementById('editPrice').value);
+            const stock = parseInt(document.getElementById('editStock').value, 10);
+            const description = document.getElementById('editDesc').value.trim();
+            const brand = document.getElementById('editBrand').value.trim();
+            const compat = document.getElementById('editCompat').value.split(',').map(t => t.trim()).filter(Boolean).join(', ');
+            const had = window._editHad || {};
+            const origRaw = document.getElementById('editOrig').value.trim();
+            const orig = origRaw === '' ? null : parseFloat(origRaw);
+            const specs = parseSpecs(document.getElementById('editSpecs').value);
+            if (orig !== null && (isNaN(orig) || orig < price)) { alert('මුල් මිල, විකුණන මිලට වඩා අඩු විය නොහැක (හෝ හිස්ව තියන්න).'); return; }
+            const links = editImgLinks();
+            const badLink = links.find(u => !/^https?:\/\//i.test(u));
+            if (badLink) { alert('Image link එකක් වැරදියි (https:// වලින් පටන් ගන්න ඕන):\n' + badLink); return; }
+            const image_url = links.join('\n');
+
+            if (!id) { alert('දෝෂයකි: Product ID අස්ථානගතයි. Modal එක නැවත විවෘත කරන්න.'); return; }
+            if (!name || isNaN(price) || isNaN(stock)) { alert('කරුණාකර සියලුම ක්ෂේත්‍ර නිවැරදිව පුරවන්න.'); return; }
+            if (price < 0 || stock < 0) { alert('මිළ සහ තොගය සෘණ (negative) අගයන් විය නොහැක.'); return; }
+
+            if (submitBtn) submitBtn.disabled = true;
+            try {
+                const { data, error } = await supabase.from('products')
+                    .update(Object.assign({ name, price, stock, description, image_url }, (brand || had.brand) ? { brand: brand || null } : {}, (compat || had.compat) ? { compat: compat || null } : {}, (orig !== null || had.orig) ? { orig: (orig !== null && orig > price) ? orig : null } : {}, (specs.length || had.specs) ? { specs: specs.length ? specs : [] } : {}))
+                    .eq('id', id)
+                    .select();
+                if (error) {
+                    alert('යාවත්කාලීන කිරීම අසාර්ථකයි: ' + error.message);
+                } else if (!data || data.length === 0) {
+                    // Update ran with no error but changed zero rows — almost
+                    // always means an RLS policy silently blocked it.
+                    alert('යාවත්කාලීන කිරීම අසාර්ථකයි: ඔබට මෙම භාණ්ඩය වෙනස් කිරීමට අවසර නැත (RLS policy පරීක්ෂා කරන්න).');
+                } else {
+                    alert('යාවත්කාලීන කිරීම සාර්ථකයි!');
+                    closeEditModal();
+                    loadProducts();
+                    checkLowStockAlerts();
+                }
+            } catch (err) {
+                console.error('Product update exception:', err);
+                alert('දෝෂයකි: ' + err.message);
+            } finally {
+                if (submitBtn) submitBtn.disabled = false;
+            }
+        });
+
+        // 2. Orders with Status Update & Email Notification
+        async function loadOrders() {
+            const tbody = document.getElementById('ordersTableBody');
+            tbody.innerHTML = '<tr><td colspan="6">ලෝඩ් වෙමින් පවතී...</td></tr>';
+            const { data, error } = await fetchAllRows('orders');
+            if (error) { tbody.innerHTML = `<tr><td colspan="6">දෝෂයකි</td></tr>`; return; }
+            allOrdersData = data || [];
+            renderOrderTable();
+        }
+
+        window.filterOrdersTable = function() {
+            currentOrderPage = 1;
+            renderOrderTable();
+        }
+
+        function orderTime(o) {
+            const t = new Date(o.created_at || o.date || o.order_date || 0).getTime();
+            return isNaN(t) ? 0 : t;
+        }
+        function orderAgo(t) {
+            if (!t) return '';
+            const m = Math.floor((Date.now() - t) / 60000);
+            if (m < 1) return 'just now';
+            if (m < 60) return m + ' min ago';
+            const h = Math.floor(m / 60);
+            if (h < 24) return h + ' h ago';
+            const d = Math.floor(h / 24);
+            return d + ' day' + (d > 1 ? 's' : '') + ' ago';
+        }
+        function orderRange() {
+            const mode = document.getElementById('ordTime')?.value || 'all';
+            const now = Date.now(), H = 3600000;
+            const mid = new Date(); mid.setHours(0, 0, 0, 0);
+            const today0 = mid.getTime();
+            if (mode === '1h') return [now - H, Infinity];
+            if (mode === '6h') return [now - 6 * H, Infinity];
+            if (mode === '12h') return [now - 12 * H, Infinity];
+            if (mode === '24h') return [now - 24 * H, Infinity];
+            if (mode === 'today') return [today0, Infinity];
+            if (mode === 'yesterday') return [today0 - 24 * H, today0];
+            if (mode === '7d') return [now - 7 * 24 * H, Infinity];
+            if (mode === '30d') return [now - 30 * 24 * H, Infinity];
+            if (mode === 'custom') {
+                const f = document.getElementById('ordFrom').value, t = document.getElementById('ordTo').value;
+                const from = f ? new Date(f + 'T00:00:00').getTime() : -Infinity;
+                const to = t ? new Date(t + 'T00:00:00').getTime() + 24 * H : Infinity;
+                return [from, to];
+            }
+            return [-Infinity, Infinity];
+        }
+        window.resetOrderFilters = function() {
+            document.getElementById('orderSearchInput').value = '';
+            document.getElementById('ordTime').value = 'all';
+            document.getElementById('ordStatus').value = 'all';
+            if (document.getElementById('ordPay')) document.getElementById('ordPay').value = 'all';
+            document.getElementById('ordSort').value = 'new';
+            document.getElementById('ordGroup').checked = false;
+            document.getElementById('ordFrom').value = '';
+            document.getElementById('ordTo').value = '';
+            filterOrdersTable();
+        }
+        window.viewCustomerOrders = function(key) {
+            document.getElementById('orderSearchInput').value = key;
+            document.getElementById('ordGroup').checked = false;
+            filterOrdersTable();
+        }
+        function customerKey(o) {
+            return String(o.customer_email || o.customer_phone || o.customer_name || 'unknown').trim().toLowerCase();
+        }
+
+        function renderOrderTable() {
+            const tbody = document.getElementById('ordersTableBody');
+            const thead = document.getElementById('ordersThead');
+            const q = (document.getElementById('orderSearchInput')?.value || '').trim().toLowerCase();
+            const statusSel = document.getElementById('ordStatus')?.value || 'all';
+            const sortSel = document.getElementById('ordSort')?.value || 'new';
+            const grouped = !!document.getElementById('ordGroup')?.checked;
+            const custom = (document.getElementById('ordTime')?.value === 'custom');
+            document.getElementById('ordCustomWrap').style.display = custom ? 'flex' : 'none';
+            document.getElementById('ordCustomWrap2').style.display = custom ? 'flex' : 'none';
+            const [from, to] = orderRange();
+
+            let filtered = allOrdersData.filter(o => {
+                const t = orderTime(o);
+                if ((from !== -Infinity || to !== Infinity) && !(t >= from && t < to)) return false;
+                if (statusSel !== 'all' && normStatus(o.status) !== statusSel) return false;
+                const paySel = document.getElementById('ordPay')?.value || 'all';
+                if (paySel !== 'all') {
+                    const bank = isBank(o);
+                    if (paySel === 'bank' && !bank) return false;
+                    if (paySel === 'other' && bank) return false;
+                    if ((paySel === 'Pending' || paySel === 'Confirmed' || paySel === 'Cancelled') && !(bank && payStatus(o) === paySel)) return false;
+                }
+                if (q) {
+                    const hay = [o.customer_name, o.customer_email, o.customer_phone, o.order_number, o.id].map(x => String(x == null ? '' : x).toLowerCase()).join(' ');
+                    if (!hay.includes(q)) return false;
+                }
+                return true;
+            });
+
+            // newest first by default (missing dates fall back to id order)
+            const cmpNew = (a, b) => (orderTime(b) - orderTime(a)) || (String(b.id).localeCompare(String(a.id), undefined, { numeric: true }));
+            if (sortSel === 'new') filtered.sort(cmpNew);
+            else if (sortSel === 'old') filtered.sort((a, b) => -cmpNew(a, b));
+            else if (sortSel === 'high') filtered.sort((a, b) => orderTotal(b) - orderTotal(a) || cmpNew(a, b));
+            else if (sortSel === 'low') filtered.sort((a, b) => orderTotal(a) - orderTotal(b) || cmpNew(a, b));
+
+            const sum = filtered.reduce((t, o) => t + orderTotal(o), 0);
+            const sumEl = document.getElementById('ordSummary');
+
+            if (grouped) {
+                const map = {};
+                filtered.forEach(o => {
+                    const k = customerKey(o);
+                    const g = map[k] || (map[k] = { key: k, name: o.customer_name, email: o.customer_email, phone: o.customer_phone, count: 0, total: 0, last: 0, pending: 0 });
+                    g.count++; g.total += orderTotal(o); g.last = Math.max(g.last, orderTime(o));
+                    if (normStatus(o.status) === 'Pending') g.pending++;
+                    if (!g.name && o.customer_name) g.name = o.customer_name;
+                });
+                let groups = Object.values(map);
+                if (sortSel === 'high') groups.sort((a, b) => b.total - a.total);
+                else if (sortSel === 'low') groups.sort((a, b) => a.total - b.total);
+                else if (sortSel === 'old') groups.sort((a, b) => a.last - b.last);
+                else groups.sort((a, b) => b.last - a.last);
+
+                sumEl.innerHTML = '<b>' + groups.length + '</b> customers · <b>' + filtered.length + '</b> orders · Total <b>LKR ' + sum.toLocaleString() + '</b>';
+                thead.innerHTML = '<tr><th>Customer</th><th>Contact</th><th>Orders</th><th>Total spent (LKR)</th><th>Last order</th><th></th></tr>';
+                const start = (currentOrderPage - 1) * rowsPerPage;
+                const page = groups.slice(start, start + rowsPerPage);
+                tbody.innerHTML = page.length === 0 ? '<tr><td colspan="6">Orders නෑ.</td></tr>' : '';
+                page.forEach(g => {
+                    const when = g.last ? new Date(g.last) : null;
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${escapeHTML(g.name) || '-'}</td>
+                            <td>${escapeHTML(g.email) || '-'}<br><small>${escapeHTML(g.phone) || ''}</small></td>
+                            <td><b>${g.count}</b>${g.pending ? '<br><small style="color:#ffb020;">' + g.pending + ' pending</small>' : ''}</td>
+                            <td>LKR ${g.total.toLocaleString()}</td>
+                            <td class="ord-when">${when ? '<b>' + escapeHTML(when.toLocaleDateString()) + '</b><small>' + escapeHTML(when.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })) + '</small><br><span class="ord-ago">' + orderAgo(g.last) + '</span>' : '-'}</td>
+                            <td><button class="btn-primary" data-ck="${escapeHTML(g.key)}" onclick="viewCustomerOrders(this.getAttribute('data-ck'))">View orders</button></td>
+                        </tr>`;
+                });
+                renderOrderPagination(groups.length);
+                return;
+            }
+
+            sumEl.innerHTML = '<b>' + filtered.length + '</b> orders · Total <b>LKR ' + sum.toLocaleString() + '</b>';
+            thead.innerHTML = '<tr><th>Date / Time</th><th>Customer</th><th>Contact</th><th>Total (LKR)</th><th>Status</th><th>Actions</th></tr>';
+            const start = (currentOrderPage - 1) * rowsPerPage;
+            const paginated = filtered.slice(start, start + rowsPerPage);
+
+            tbody.innerHTML = paginated.length === 0 ? '<tr><td colspan="6">Orders නෑ.</td></tr>' : '';
+
+            paginated.forEach(item => {
+                const statusClass = ({ Delivered: 'badge-delivered', Shipping: 'badge-shipping', Confirmed: 'badge-confirmed', Cancelled: 'badge-cancelled' })[normStatus(item.status)] || 'badge-pending';
+                const t = orderTime(item), when = t ? new Date(t) : null;
+                tbody.innerHTML += `
+                    <tr>
+                        <td class="ord-when">${when ? '<b>' + escapeHTML(when.toLocaleDateString()) + '</b><small>' + escapeHTML(when.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })) + '</small><br><span class="ord-ago">' + orderAgo(t) + '</span>' : '-'}</td>
+                        <td>${escapeHTML(item.customer_name) || '-'}${item.order_number ? '<br><small style="color:#00f0ff;">' + escapeHTML(String(item.order_number)) + '</small>' : ''}${item.admin_note ? '<br><small style="color:#f5a623;">📝 ' + escapeHTML(item.admin_note) + '</small>' : ''}</td>
+                        <td>${escapeHTML(item.customer_email) || '-'}<br><small>${escapeHTML(item.customer_phone) || ''}</small></td>
+                        <td>LKR ${orderTotal(item).toLocaleString()}${window.isFreeShip(item) ? '<br><small style="color:#00ff9d;">🚚 Free delivery</small>' : ''}${payHTML(item)}</td>
+                        <td>
+                            <select onchange="updateOrderStatus('${item.id}', this.value)" class="badge ${statusClass}">
+                                <option value="Pending" ${normStatus(item.status) === 'Pending' ? 'selected' : ''}>Pending</option>
+                                <option value="Confirmed" ${normStatus(item.status) === 'Confirmed' ? 'selected' : ''}>Confirmed</option>
+                                <option value="Shipping" ${normStatus(item.status) === 'Shipping' ? 'selected' : ''}>Shipping</option>
+                                <option value="Delivered" ${normStatus(item.status) === 'Delivered' ? 'selected' : ''}>Delivered</option>
+                                <option value="Cancelled" ${normStatus(item.status) === 'Cancelled' ? 'selected' : ''}>Cancelled</option>
+                            </select>${item.tracking_number ? '<br><small style="color:#00ffcc;">🚚 ' + escapeHTML(item.tracking_number) + '</small>' : ''}
+                        </td>
+                        <td>
+                            <button class="btn-success" onclick="editOrderNote('${item.id}')">📝 Note</button>
+                            <button class="btn-success" onclick="editTracking('${item.id}')">🚚 Tracking</button>
+                            <button class="btn-success" onclick="printInvoice('${item.id}')">🧾 Invoice</button>
+                            <button class="btn-success" onclick="printLabel('${item.id}')">📦 Label</button>
+                            <button class="btn-danger" onclick="deleteOrder('${item.id}')">🗑 Delete</button>
+                        </td>
+                    </tr>`;
+            });
+            renderOrderPagination(filtered.length);
+        }
+
+        function renderOrderPagination(totalRows) {
+            const paginationEl = document.getElementById('orderPagination');
+            const totalPages = Math.ceil(totalRows / rowsPerPage);
+            paginationEl.innerHTML = '';
+            for(let i = 1; i <= totalPages; i++) {
+                paginationEl.innerHTML += `<button class="${i === currentOrderPage ? 'active' : ''}" onclick="changeOrderPage(${i})">${i}</button>`;
+            }
+        }
+
+        window.changeOrderPage = function(page) {
+            currentOrderPage = page;
+            renderOrderTable();
+        }
+
+        // ===== Payment (bank transfer) =====
+        function isBank(o) { return /bank/i.test(String(o.payment_method || '')); }
+        function payStatus(o) { const t = String(o.payment_status || 'Pending').toLowerCase(); return t.charAt(0).toUpperCase() + t.slice(1); }
+        function payHTML(o) {
+            if (!o.payment_method) return '';
+            if (!isBank(o)) return '<br><small style="opacity:.75;">💳 ' + escapeHTML(String(o.payment_method)) + '</small>';
+            const ps = payStatus(o), cls = ({ Confirmed: 'badge-delivered', Cancelled: 'badge-cancelled' })[ps] || 'badge-pending';
+            return '<br><small style="opacity:.8;">🏦 Bank transfer</small><br><select onchange="updatePaymentStatus(\'' + o.id + '\', this.value)" class="badge ' + cls + '" style="margin-top:3px;">'
+                + ['Pending', 'Confirmed', 'Cancelled'].map(v => '<option value="' + v + '"' + (ps === v ? ' selected' : '') + '>Payment ' + v.toLowerCase() + '</option>').join('') + '</select>';
+        }
+        window.updatePaymentStatus = async function(id, val) {
+            const o = allOrdersData.find(x => String(x.id) === String(id));
+            const { data, error } = await supabase.from('orders').update({ payment_status: val }).eq('id', id).select();
+            if (error || !data || !data.length) { alert('Could not update payment status: ' + (error ? error.message : 'blocked by RLS policy.') + '\n(Run supabase_bank_transfer.sql first if the payment_status column is missing.)'); loadOrders(); return; }
+            if (o) sendStatusMail(o, 'payment', val);
+            if (o && val === 'Confirmed' && normStatus(o.status) === 'Pending') await window.updateOrderStatus(id, 'Confirmed', true);
+            else if (o && val === 'Cancelled' && normStatus(o.status) !== 'Cancelled') await window.updateOrderStatus(id, 'Cancelled', true);
+            loadOrders();
+        };
+
+        window.updateOrderStatus = async function(id, status, skipMail) {
+            const order = allOrdersData.find(o => String(o.id) === String(id));
+            const { data, error } = await supabase.from('orders').update({ status }).eq('id', id).select();
+            if (error) {
+                alert('තත්ත්වය යාවත්කාලීන කිරීම අසාර්ථකයි: ' + error.message);
+                loadOrders(); // revert the <select> to the real DB value
+                return;
+            }
+            if (!data || data.length === 0) {
+                alert('තත්ත්වය යාවත්කාලීන කිරීම අසාර්ථකයි: RLS policy මගින් අවහිර කර ඇත.');
+                loadOrders();
+                return;
+            }
+
+            if (order && normStatus(status) === 'Shipping' && !skipMail) {
+                const tn = prompt('Courier tracking number එක (නැත්නම් හිස්ව OK ඔබන්න):', order.tracking_number || '');
+                if (tn && tn.trim()) {
+                    order.tracking_number = tn.trim();
+                    try { await supabase.from('orders').update({ tracking_number: order.tracking_number }).eq('id', id); } catch (e) {}
+                }
+            }
+            // Customer ට status email එක (free, EmailJS)
+            if (!skipMail && order) sendStatusMail(order, 'order', normStatus(status));
+            if (order) order.status = status; // keep local cache in sync
+            renderOrderTable();
+        }
+
+        window.deleteOrder = async function(id) {
+            if(!confirm('මෙම ඇණවුම ඉවත් කිරීමට අවශ්‍ය බව සැබෑද?\n\nඇණවුම ඉවත් කළාම භාණ්ඩවල තොගය (stock) ස්වයංක්‍රීයව ආපසු එකතු වේ.')) return;
+            const { error } = await supabase.from('orders').delete().eq('id', id);
+            if(error) alert('දෝෂයකි: ' + error.message);
+            else { alert('ඇණවුම සාර්ථකව ඉවත් කරන ලදී!'); loadOrders(); loadDashboardStats(); }
+        }
+
+
+        // ===== Sales report CSV export (uses the current Time / Status / Search filters) =====
+        function csvCell(v) {
+            let t = String(v == null ? '' : v);
+            // stop spreadsheet formula injection (=, +, -, @ at the start of a text cell)
+            if (/^[=+\-@]/.test(t) && isNaN(Number(t))) t = "'" + t;
+            return '"' + t.replace(/"/g, '""') + '"';
+        }
+        window.exportSalesCSV = function() {
+            const q = (document.getElementById('orderSearchInput')?.value || '').trim().toLowerCase();
+            const statusSel = document.getElementById('ordStatus')?.value || 'all';
+            const [from, to] = orderRange();
+            const rows = allOrdersData.filter(o => {
+                const t = orderTime(o);
+                if ((from !== -Infinity || to !== Infinity) && !(t >= from && t < to)) return false;
+                if (statusSel !== 'all' && normStatus(o.status) !== statusSel) return false;
+                if (q) {
+                    const hay = [o.customer_name, o.customer_email, o.customer_phone, o.order_number, o.id].map(x => String(x == null ? '' : x).toLowerCase()).join(' ');
+                    if (!hay.includes(q)) return false;
+                }
+                return true;
+            }).sort((a, b) => orderTime(a) - orderTime(b));
+            if (rows.length === 0) { alert('Export කරන්න orders නෑ (filter එක පරීක්ෂා කරන්න).'); return; }
+
+            const head = ['Order No', 'Date', 'Time', 'Customer Name', 'Email', 'Phone', 'Status', 'Total (LKR)'];
+            const lines = [head.map(csvCell).join(',')];
+            let sumAll = 0, sumValid = 0;
+            rows.forEach(o => {
+                const t = orderTime(o), d = t ? new Date(t) : null;
+                const pad = n => String(n).padStart(2, '0');
+                const date = d ? `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}` : '';
+                const time = d ? `${pad(d.getHours())}:${pad(d.getMinutes())}` : '';
+                const total = orderTotal(o);
+                sumAll += total;
+                if (normStatus(o.status) !== 'Cancelled') sumValid += total;
+                lines.push([o.order_number || o.id, date, time, o.customer_name, o.customer_email, o.customer_phone, normStatus(o.status), total.toFixed(2)].map(csvCell).join(','));
+            });
+            lines.push('');
+            lines.push(['', '', '', '', '', '', 'Orders', rows.length].map(csvCell).join(','));
+            lines.push(['', '', '', '', '', '', 'Total (all)', sumAll.toFixed(2)].map(csvCell).join(','));
+            lines.push(['', '', '', '', '', '', 'Total (excl. Cancelled)', sumValid.toFixed(2)].map(csvCell).join(','));
+
+            const blob = new Blob(['\ufeff' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8;' });
+            const a = document.createElement('a');
+            const stamp = new Date().toISOString().slice(0, 10);
+            a.href = URL.createObjectURL(blob);
+            a.download = `smartpart-sales-report-${stamp}.csv`;
+            document.body.appendChild(a); a.click(); a.remove();
+            setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+        };
+
+        // ===== Order helpers (tolerant of column names) =====
+        function oItems(o) { let it = o.items || o.order_items || []; if (typeof it === 'string') { try { it = JSON.parse(it); } catch (e) { it = []; } } return Array.isArray(it) ? it : []; }
+        function oAddr(o) { return [o.address || o.customer_address || o.shipping_address, o.city, o.postal || o.postal_code].filter(Boolean).join(', '); }
+        function oDate(o) { const t = orderTime(o); return t ? new Date(t) : null; }
+        const lk = (n) => 'LKR ' + (Number(n) || 0).toLocaleString();
+        // Free delivery: use the value stored with the order when the column exists; otherwise estimate
+        window.isFreeShip = function(o) {
+            if ('free_delivery' in o) return o.free_delivery === true;
+            if (!window.SHIP_TARGET) return false;
+            const sub = parseFloat(o.subtotal);
+            return (!isNaN(sub) && sub > 0 ? sub : orderTotal(o)) >= window.SHIP_TARGET;
+        };
+
+        // ===== Invoice (table layout) =====
+        window.printInvoice = function(orderId) {
+            const o = allOrdersData.find(x => String(x.id) === String(orderId));
+            if (!o) { alert('Order not found.'); return; }
+            const items = oItems(o), d = oDate(o), total = orderTotal(o);
+            const sub = parseFloat(o.subtotal) > 0 ? parseFloat(o.subtotal) : total;
+            const disc = parseFloat(o.discount) > 0 ? parseFloat(o.discount) : 0;
+            const no = String(o.order_number || o.id);
+            const rows = items.length ? items.map((it, i) => `<tr><td>${i + 1}</td><td>${escapeHTML(it.name || '-')}</td><td class="r">${it.qty || 1}</td><td class="r">${(Number(it.price) || 0).toLocaleString()}</td><td class="r">${((Number(it.price) || 0) * (it.qty || 1)).toLocaleString()}</td></tr>`).join('')
+                : '<tr><td colspan="5" style="text-align:center;color:#888">Item details are not stored on this order record.</td></tr>';
+            const html = `<html><head><title>Invoice - ${escapeHTML(no)}</title><style>
+                @page{size:A4;margin:14mm}body{font-family:Arial,Helvetica,sans-serif;color:#111;font-size:13px}
+                .top{display:flex;justify-content:space-between;border-bottom:3px solid #12121a;padding-bottom:10px}
+                h1{margin:0;font-size:24px}.muted{color:#666}.box{display:flex;gap:30px;margin:16px 0}.box div{flex:1}
+                table{width:100%;border-collapse:collapse;margin-top:6px}th{background:#12121a;color:#fff;text-align:left;padding:8px;font-size:12px}
+                td{padding:8px;border-bottom:1px solid #ddd}.r{text-align:right}.tot{width:260px;margin-left:auto;margin-top:12px}
+                .tot td{border:0;padding:4px 8px}.grand td{border-top:2px solid #12121a;font-weight:700;font-size:15px}.free{color:#0a8f5a;font-weight:700}
+            </style></head><body>
+            <div class="top"><div><h1>SmartParts</h1><div class="muted">PC Hardware &amp; Components Store, Sri Lanka<br>Hotline: 076-7396487 | WhatsApp: +94 76 739 6487</div></div>
+            <div style="text-align:right"><h1 style="font-size:20px">INVOICE</h1><div>No: <b>${escapeHTML(no)}</b><br>Date: ${d ? escapeHTML(d.toLocaleDateString()) : '-'}<br>Status: ${escapeHTML(normStatus(o.status))}</div></div></div>
+            <div class="box"><div><b>Bill / Ship to</b><br>${escapeHTML(o.customer_name || '-')}<br>${escapeHTML(o.customer_phone || '')}<br>${escapeHTML(o.customer_email || '')}<br>${escapeHTML(oAddr(o))}</div></div>
+            <table><thead><tr><th style="width:30px">#</th><th>Item</th><th class="r" style="width:50px">Qty</th><th class="r" style="width:90px">Unit (LKR)</th><th class="r" style="width:100px">Amount (LKR)</th></tr></thead><tbody>${rows}</tbody></table>
+            <table class="tot"><tr><td>Subtotal</td><td class="r">${lk(sub)}</td></tr>
+            ${disc > 0 ? `<tr><td>Discount${o.coupon ? ' (' + escapeHTML(String(o.coupon)) + ')' : ''}</td><td class="r">- ${lk(disc)}</td></tr>` : ''}
+            ${window.isFreeShip(o) ? '<tr><td>Delivery</td><td class="r free">FREE</td></tr>' : ''}
+            <tr class="grand"><td>Total</td><td class="r">${lk(total)}</td></tr></table>
+            <p class="muted" style="margin-top:30px">Thank you for shopping with SmartParts. Company warranty applies as per our warranty policy.</p></body></html>`;
+            const win = window.open('', '', 'height=800,width=900');
+            win.document.write(html); win.document.close(); win.focus(); win.print();
+        };
+
+        // ===== Courier label / packing slip (editable size) =====
+        const LBL_PRESETS = { 'A6 (105 x 148 mm)': [105, 148], 'A5 (148 x 210 mm)': [148, 210], 'A4 (210 x 297 mm)': [210, 297], 'Courier 100 x 150 mm': [100, 150], 'Small 100 x 100 mm': [100, 100] };
+        const lsGet = (k, d) => { try { return localStorage.getItem(k) || d; } catch (e) { return d; } };
+        const lsSet = (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} };
+        function labelHTML(o, w, h, fs, sender, withItems) {
+            const items = oItems(o), d = oDate(o);
+            const itemRows = items.map(it => `<tr><td>${it.qty || 1} x</td><td>${escapeHTML(it.name || '-')}</td></tr>`).join('');
+            return `<div style="box-sizing:border-box;width:${w}mm;height:${h}mm;padding:4mm;border:1px solid #000;font-family:Arial,Helvetica,sans-serif;font-size:${fs}px;color:#000;background:#fff;overflow:hidden;display:flex;flex-direction:column;gap:2.5mm">
+              <div style="border-bottom:1px solid #000;padding-bottom:2mm"><b style="font-size:${fs * 0.8}px">FROM</b><br><span style="white-space:pre-line">${escapeHTML(sender)}</span></div>
+              <div style="flex:1"><b style="font-size:${fs * 0.8}px">TO</b><br><b style="font-size:${fs * 1.5}px">${escapeHTML(o.customer_name || '-')}</b><br>Tel: <b>${escapeHTML(o.customer_phone || '-')}</b><br>${escapeHTML(oAddr(o) || '-')}${o.location ? '<br>Landmark: ' + escapeHTML(o.location) : ''}</div>
+              ${withItems ? `<table style="width:100%;border-collapse:collapse;font-size:${fs * 0.85}px">${itemRows || '<tr><td>-</td></tr>'}</table>` : ''}
+              <div style="border-top:1px solid #000;padding-top:2mm;display:flex;justify-content:space-between"><span>Order: <b>${escapeHTML(String(o.order_number || o.id))}</b>${d ? '<br>' + escapeHTML(d.toLocaleDateString()) : ''}</span><span style="text-align:right">Total: <b>${lk(orderTotal(o))}</b>${window.isFreeShip(o) ? '<br>Delivery: FREE' : ''}</span></div></div>`;
+        }
+        window.printLabel = function(orderId) {
+            const o = allOrdersData.find(x => String(x.id) === String(orderId));
+            if (!o) { alert('Order not found.'); return; }
+            const old = document.getElementById('lblOverlay'); if (old) old.remove();
+            const ov = document.createElement('div'); ov.id = 'lblOverlay';
+            ov.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;padding:14px';
+            const sender = lsGet('sp_lbl_sender', 'SmartParts\nPC Hardware & Components\nHotline: 076-7396487');
+            ov.innerHTML = `<div style="background:var(--sidebar-bg,#14141f);color:var(--text,#fff);border:1px solid var(--border,#333);border-radius:14px;max-width:900px;width:100%;max-height:92vh;overflow:auto;padding:16px;display:grid;grid-template-columns:260px 1fr;gap:16px">
+              <div style="display:flex;flex-direction:column;gap:8px"><h3 style="margin:0">📦 Courier Label</h3>
+                <label>Box size<select id="lblPreset" style="width:100%">${Object.keys(LBL_PRESETS).map(k => `<option>${k}</option>`).join('')}<option>Custom</option></select></label>
+                <div style="display:flex;gap:6px"><label style="flex:1">Width (mm)<input type="number" id="lblW" min="40" max="400" style="width:100%"></label><label style="flex:1">Height (mm)<input type="number" id="lblH" min="40" max="400" style="width:100%"></label></div>
+                <label>Font size (px)<input type="number" id="lblFs" min="7" max="22" style="width:100%"></label>
+                <label>Sender details<textarea id="lblSender" rows="4" style="width:100%">${escapeHTML(sender)}</textarea></label>
+                <label><input type="checkbox" id="lblItems" checked> Show items on label</label>
+                <button class="btn-primary" id="lblPrint">🖨 Print</button><button class="btn-danger" id="lblClose">Close</button></div>
+              <div style="overflow:auto;background:#555;padding:12px;border-radius:10px"><div id="lblPrev"></div></div></div>`;
+            document.body.appendChild(ov);
+            const $ = (id) => document.getElementById(id);
+            $('lblW').value = lsGet('sp_lbl_w', 100); $('lblH').value = lsGet('sp_lbl_h', 150); $('lblFs').value = lsGet('sp_lbl_fs', 11);
+            const cur = () => ({ w: Math.max(40, +$('lblW').value || 100), h: Math.max(40, +$('lblH').value || 150), fs: Math.max(7, +$('lblFs').value || 11) });
+            const draw = () => { const c = cur(); lsSet('sp_lbl_w', c.w); lsSet('sp_lbl_h', c.h); lsSet('sp_lbl_fs', c.fs); lsSet('sp_lbl_sender', $('lblSender').value); $('lblPrev').innerHTML = labelHTML(o, c.w, c.h, c.fs, $('lblSender').value, $('lblItems').checked); };
+            const matchPreset = () => { const c = cur(); const k = Object.keys(LBL_PRESETS).find(k => LBL_PRESETS[k][0] === c.w && LBL_PRESETS[k][1] === c.h); $('lblPreset').value = k || 'Custom'; };
+            $('lblPreset').onchange = () => { const p = LBL_PRESETS[$('lblPreset').value]; if (p) { $('lblW').value = p[0]; $('lblH').value = p[1]; } draw(); };
+            ['lblW', 'lblH', 'lblFs', 'lblSender', 'lblItems'].forEach(id => $(id).addEventListener('input', () => { matchPreset(); draw(); }));
+            $('lblClose').onclick = () => ov.remove();
+            $('lblPrint').onclick = () => {
+                const c = cur(); draw();
+                const win = window.open('', '', 'height=700,width=600');
+                win.document.write(`<html><head><title>Label ${escapeHTML(String(o.order_number || o.id))}</title><style>@page{size:${c.w}mm ${c.h}mm;margin:0}body{margin:0}</style></head><body>${labelHTML(o, c.w, c.h, c.fs, $('lblSender').value, $('lblItems').checked)}</body></html>`);
+                win.document.close(); win.focus(); win.print();
+            };
+            matchPreset(); draw();
+        };
+
+        // 3. Customers with Order History & Delete
+        async function loadCustomers() {
+            const tbody = document.getElementById('customersTableBody');
+            tbody.innerHTML = '<tr><td colspan="4">ලෝඩ් වෙමින් පවතී...</td></tr>';
+            const { data, error } = await fetchAllRows('customers');
+            if (error) { tbody.innerHTML = `<tr><td colspan="4">දෝෂයකි: ${escapeHTML(error.message)}</td></tr>`; return; }
+            allCustomersData = data || [];
+            tbody.innerHTML = allCustomersData.length === 0 ? '<tr><td colspan="4">පාරිභෝගිකයින් නැත.</td></tr>' : '';
+
+            allCustomersData.forEach(item => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${escapeHTML(item.name)}</td>
+                        <td>${escapeHTML(item.email)}</td>
+                        <td>${escapeHTML(item.phone) || '-'}</td>
+                        <td>
+                            <button class="btn-primary" onclick="viewCustomerHistory('${item.id}')">🔍 View History</button>
+                            <button class="btn-danger" onclick="deleteCustomer('${item.id}')">🗑️ Delete</button>
+                        </td>
+                    </tr>`;
+            });
+        }
+
+        window.deleteCustomer = async function(id) {
+            if(!confirm('මෙම පාරිභෝගිකයා ඉවත් කිරීමට අවශ්‍ය බව සැබෑද?')) return;
+            const { error } = await supabase.from('customers').delete().eq('id', id);
+            if(error) alert('දෝෂයකි: ' + error.message);
+            else { alert('පාරිභෝගිකයා ඉවත් කරන ලදී!'); loadCustomers(); loadDashboardStats(); }
+        }
+
+        window.viewCustomerHistory = async function(id) {
+            const cust = allCustomersData.find(c => String(c.id) === String(id));
+            if (!cust) { alert('පාරිභෝගිකයා හමු නොවීය.'); return; }
+            const { email, name } = cust;
+            document.getElementById('custModalTitle').innerText = `${name} (${email}) - ඇණවුම් ඉතිහාසය`;
+            document.getElementById('customerModal').style.display = 'flex';
+            const contentDiv = document.getElementById('custOrdersContent');
+            contentDiv.innerHTML = 'සොයමින් පවතී...';
+
+            const { data, error } = await supabase.from('orders').select('*').eq('customer_email', email);
+            if(error || !data || data.length === 0) {
+                contentDiv.innerHTML = '<p style="color:var(--text-muted)">මෙම පාරිභෝගිකයාගෙන් තවම ඇණවුම් ලැබී නැත.</p>';
+                return;
+            }
+
+            let html = '<table style="width:100%"><tr><th>ID</th><th>මුදල (LKR)</th><th>තත්ත්වය</th></tr>';
+            data.forEach(o => {
+                html += `<tr><td>${escapeHTML(String(o.id).slice(0,8))}...</td><td>${orderTotal(o).toLocaleString()}</td><td>${escapeHTML(o.status)}</td></tr>`;
+            });
+            html += '</table>';
+            contentDiv.innerHTML = html;
+        }
+
+        window.closeCustomerModal = function() {
+            document.getElementById('customerModal').style.display = 'none';
+        }
+
+        // 4. Coupons + Delete
+        document.getElementById('couponForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const code = document.getElementById('cCode').value.trim().toUpperCase();
+            const percent = parseFloat(document.getElementById('cDiscount').value);
+            const active = true;
+
+            const { error } = await supabase.from('coupons').insert([{ code, percent, active }]);
+            if (error) alert('දෝෂයකි: ' + error.message);
+            else { alert('කූපනය සාර්ථකයි!'); document.getElementById('couponForm').reset(); loadCoupons(); loadDashboardStats(); }
+        });
+
+        async function loadCoupons() {
+            const tbody = document.getElementById('couponsTableBody');
+            tbody.innerHTML = '<tr><td colspan="3">ලෝඩ් වෙමින් පවතී...</td></tr>';
+            const { data, error } = await supabase.from('coupons').select('*');
+            if (error) { tbody.innerHTML = `<tr><td colspan="3">දෝෂයකි</td></tr>`; return; }
+            tbody.innerHTML = data.length === 0 ? '<tr><td colspan="3">කූපන් නැත.</td></tr>' : '';
+            data.forEach(item => {
+                const discountVal = item.percent !== undefined ? item.percent : item.discount_percent;
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${escapeHTML(item.code)}</td>
+                        <td>${discountVal}%</td>
+                        <td>
+                            <button class="btn-danger" onclick="deleteCoupon('${item.id}')">🗑️ Delete</button>
+                        </td>
+                    </tr>`;
+            });
+        }
+
+        window.deleteCoupon = async function(id) {
+            if(!confirm('මෙම කූපනය ඉවත් කිරීමට අවශ්‍ය බව සැබෑද?')) return;
+            const { error } = await supabase.from('coupons').delete().eq('id', id);
+            if(error) alert('දෝෂයකි: ' + error.message);
+            else { alert('කූපනය ඉවත් කරන ලදී!'); loadCoupons(); loadDashboardStats(); }
+        }
+
+        // 4b. Offer banner (stored in site_settings, key = 'offer')
+        function toLocalInput(iso) {
+            const d = new Date(iso); if (isNaN(d)) return '';
+            d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+            return d.toISOString().slice(0, 16);
+        }
+        async function loadOfferSettings() {
+            const st = document.getElementById('offerStatus');
+            const { data, error } = await supabase.from('site_settings').select('value').eq('key', 'offer').maybeSingle();
+            if (error) { st.textContent = '⚠️ site_settings table missing — run supabase/schema.sql first. (' + error.message + ')'; return; }
+            const v = (data && data.value) || {};
+            document.getElementById('oTitle').value = v.title || '';
+            document.getElementById('oPercent').value = v.percent || '';
+            document.getElementById('oExpiry').value = v.expires_at ? toLocalInput(v.expires_at) : '';
+            document.getElementById('oEnabled').value = v.enabled ? '1' : '0';
+            const live = v.enabled && new Date(v.expires_at) > new Date();
+            st.textContent = live ? `✅ LIVE — ${v.percent}% off until ${new Date(v.expires_at).toLocaleString()}` : '⏸️ No offer is live right now.';
+        }
+        async function saveOffer(value) {
+            const { error } = await supabase.from('site_settings').upsert({ key: 'offer', value, updated_at: new Date().toISOString() }, { onConflict: 'key' });
+            if (error) alert('දෝෂයකි: ' + error.message); else { alert('Offer saved!'); loadOfferSettings(); }
+        }
+        document.getElementById('offerForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const percent = parseFloat(document.getElementById('oPercent').value);
+            const exp = new Date(document.getElementById('oExpiry').value);
+            if (!(percent > 0 && percent < 100) || isNaN(exp)) { alert('Enter a valid % (1-99) and expiry.'); return; }
+            saveOffer({ enabled: document.getElementById('oEnabled').value === '1', title: document.getElementById('oTitle').value.trim(), percent, expires_at: exp.toISOString() });
+        });
+        window.turnOffOffer = function() {
+            saveOffer({ enabled: false, title: document.getElementById('oTitle').value.trim(), percent: parseFloat(document.getElementById('oPercent').value) || 0, expires_at: new Date().toISOString() });
+        }
+
+
+        // 4c. Free delivery progress bar (site_settings, key = 'free_ship')
+        async function loadShipSettings() {
+            const st = document.getElementById('shipStatus');
+            const { data, error } = await supabase.from('site_settings').select('value').eq('key', 'free_ship').maybeSingle();
+            if (error) { st.textContent = '⚠️ ' + error.message; return; }
+            const v = (data && data.value) || {};
+            document.getElementById('shipTarget').value = v.target || '';
+            document.getElementById('shipLabel').value = v.label || '';
+            document.getElementById('shipEnabled').value = v.enabled ? '1' : '0';
+            window.SHIP_TARGET = (v.enabled && Number(v.target) > 0) ? Number(v.target) : 0;
+            st.textContent = (v.enabled && v.target) ? `✅ LIVE — free delivery from LKR ${Number(v.target).toLocaleString()}` : '⚪ Free delivery bar is off.';
+        }
+        document.getElementById('shipForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const target = parseFloat(document.getElementById('shipTarget').value);
+            if (!(target > 0)) { alert('Enter a valid amount.'); return; }
+            const value = { enabled: document.getElementById('shipEnabled').value === '1', target, label: document.getElementById('shipLabel').value.trim() || 'free delivery' };
+            const { error } = await supabase.from('site_settings').upsert({ key: 'free_ship', value, updated_at: new Date().toISOString() }, { onConflict: 'key' });
+            if (error) alert('Error: ' + error.message); else { alert('Saved!'); loadShipSettings(); }
+        });
+
+        // 5b. Slider Ads (table: advertisements, bucket: ads)
+        const AD_BUCKET = 'ads';
+        let allAdsData = [];
+
+        function safeHttpUrl(u) {
+            try {
+                const x = new URL(String(u || '').trim());
+                return (x.protocol === 'http:' || x.protocol === 'https:') ? x.href : '';
+            } catch (e) { return ''; }
+        }
+
+        // Live preview of the pasted URL / chosen file
+        function setAdPreview(src) {
+            const img = document.getElementById('adPreview');
+            if (src) { img.src = src; img.style.display = 'block'; }
+            else { img.removeAttribute('src'); img.style.display = 'none'; }
+        }
+        document.getElementById('adImageUrl').addEventListener('input', (e) => setAdPreview(safeHttpUrl(e.target.value)));
+        document.getElementById('adFile').addEventListener('change', (e) => {
+            const f = e.target.files[0];
+            if (f) setAdPreview(URL.createObjectURL(f));
+        });
+
+        function resetAdForm() {
+            document.getElementById('adForm').reset();
+            document.getElementById('adId').value = '';
+            document.getElementById('adExistingImage').value = '';
+            document.getElementById('adActive').checked = true;
+            document.getElementById('adFormTitle').textContent = '🖼️ Slider Ads (Ad Photos & Links)';
+            document.getElementById('adSubmitBtn').textContent = '➕ Ad එක එකතු කරන්න';
+            document.getElementById('adCancelBtn').style.display = 'none';
+            setAdPreview('');
+        }
+        window.cancelAdEdit = function() { resetAdForm(); };
+
+        // Storage path of a file that lives in our bucket (null for external URLs)
+        function adStoragePath(url) {
+            const marker = '/' + AD_BUCKET + '/';
+            const idx = String(url || '').indexOf(marker);
+            return idx === -1 ? null : decodeURIComponent(String(url).substring(idx + marker.length).split('?')[0]);
+        }
+
+        async function uploadAdImage(file) {
+            const allowed = ['image/png', 'image/jpeg', 'image/webp', 'image/gif'];
+            if (!allowed.includes(file.type)) throw new Error('PNG, JPG, WebP හෝ GIF පින්තූර පමණක් අවසර ඇත.');
+            if (file.size > 3 * 1024 * 1024) throw new Error('පින්තූරය 3MB ට වඩා විශාල විය නොහැක.');
+            const ext = (file.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '');
+            const path = `ads/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+            const { error } = await supabase.storage.from(AD_BUCKET).upload(path, file, { cacheControl: '3600', upsert: false, contentType: file.type });
+            if (error) throw error;
+            return supabase.storage.from(AD_BUCKET).getPublicUrl(path).data.publicUrl;
+        }
+
+        document.getElementById('adForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('adSubmitBtn');
+            const id = document.getElementById('adId').value;
+            const file = document.getElementById('adFile').files[0];
+            const pastedUrl = safeHttpUrl(document.getElementById('adImageUrl').value);
+            const target_url = document.getElementById('adTargetUrl').value.trim();
+            const position = document.getElementById('adPosition').value;
+            const is_active = document.getElementById('adActive').checked;
+
+            if (target_url && !safeHttpUrl(target_url)) { alert('Target URL එක http:// හෝ https:// වලින් ආරම්භ විය යුතුයි.'); return; }
+            if (!file && !pastedUrl) { alert('කරුණාකර Ad Photo එකක් Upload කරන්න, නැතිනම් Image URL එකක් දෙන්න.'); return; }
+
+            const originalLabel = btn.textContent;
+            btn.disabled = true; btn.textContent = 'සුරකිමින්...';
+            try {
+                let image_url = pastedUrl;
+                if (file) image_url = await uploadAdImage(file);
+
+                const payload = { image_url, target_url: target_url || null, position, is_active };
+                let error;
+                if (id) ({ error } = await supabase.from('advertisements').update(payload).eq('id', id));
+                else    ({ error } = await supabase.from('advertisements').insert([payload]));
+                if (error) throw error;
+
+                // Editing with a NEW image: remove the old file from storage (best effort)
+                const oldUrl = document.getElementById('adExistingImage').value;
+                if (id && oldUrl && oldUrl !== image_url) {
+                    const oldPath = adStoragePath(oldUrl);
+                    if (oldPath) await supabase.storage.from(AD_BUCKET).remove([oldPath]);
+                }
+                alert(id ? 'Ad එක යාවත්කාලීන කරන ලදී!' : 'Ad එක සාර්ථකව එකතු කරන ලදී!');
+                resetAdForm();
+                loadAds();
+            } catch (err) {
+                alert('දෝෂයකි: ' + (err.message || err));
+            } finally {
+                btn.disabled = false;
+                if (!document.getElementById('adId').value) btn.textContent = '➕ Ad එක එකතු කරන්න';
+                else btn.textContent = originalLabel;
+            }
+        });
+
+        async function loadAds() {
+            const tbody = document.getElementById('adsTableBody');
+            tbody.innerHTML = '<tr><td colspan="5">ලෝඩ් වෙමින් පවතී...</td></tr>';
+            const { data, error } = await supabase.from('advertisements').select('*').order('created_at', { ascending: false });
+            if (error) { tbody.innerHTML = `<tr><td colspan="5">දෝෂයකි: ${escapeHTML(error.message)}</td></tr>`; return; }
+            allAdsData = data || [];
+            if (!allAdsData.length) { tbody.innerHTML = '<tr><td colspan="5">Ads කිසිවක් නැත.</td></tr>'; return; }
+            tbody.innerHTML = '';
+            allAdsData.forEach(ad => {
+                const img = safeHttpUrl(ad.image_url);
+                const link = safeHttpUrl(ad.target_url);
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${img ? `<img class="ad-thumb" src="${escapeHTML(img)}" alt="Ad">` : '—'}</td>
+                        <td class="ad-link-cell">${link ? `<a href="${escapeHTML(link)}" target="_blank" rel="noopener noreferrer" style="color: var(--accent);">${escapeHTML(link)}</a>` : '<span style="color: var(--text-muted);">Link නැත</span>'}</td>
+                        <td>${escapeHTML(ad.position || '')}</td>
+                        <td><span class="ad-badge ${ad.is_active ? 'on' : 'off'}">${ad.is_active ? 'Active' : 'Hidden'}</span></td>
+                        <td style="white-space: nowrap;">
+                            <button class="btn-success" onclick="toggleAd('${ad.id}')">${ad.is_active ? '👁️ Hide' : '👁️ Show'}</button>
+                            <button class="btn-primary" onclick="editAd('${ad.id}')">✏️ Edit</button>
+                            <button class="btn-danger" onclick="deleteAd('${ad.id}')">🗑️ Delete</button>
+                        </td>
+                    </tr>`;
+            });
+        }
+
+        window.editAd = function(id) {
+            const ad = allAdsData.find(a => String(a.id) === String(id));
+            if (!ad) return;
+            document.getElementById('adId').value = ad.id;
+            document.getElementById('adExistingImage').value = ad.image_url || '';
+            document.getElementById('adImageUrl').value = ad.image_url || '';
+            document.getElementById('adTargetUrl').value = ad.target_url || '';
+            document.getElementById('adPosition').value = ad.position || 'slider';
+            document.getElementById('adActive').checked = !!ad.is_active;
+            document.getElementById('adFile').value = '';
+            document.getElementById('adFormTitle').textContent = '✏️ Ad එක වෙනස් කරන්න';
+            document.getElementById('adSubmitBtn').textContent = '💾 යාවත්කාලීන කරන්න';
+            document.getElementById('adCancelBtn').style.display = 'inline-block';
+            setAdPreview(safeHttpUrl(ad.image_url));
+            document.getElementById('adForm').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        };
+
+        window.toggleAd = async function(id) {
+            const ad = allAdsData.find(a => String(a.id) === String(id));
+            if (!ad) return;
+            const { error } = await supabase.from('advertisements').update({ is_active: !ad.is_active }).eq('id', id);
+            if (error) alert('දෝෂයකි: ' + error.message);
+            else loadAds();
+        };
+
+        window.deleteAd = async function(id) {
+            if (!confirm('මෙම Ad එක ඉවත් කිරීමට අවශ්‍ය බව සැබෑද?')) return;
+            const ad = allAdsData.find(a => String(a.id) === String(id));
+            const { error } = await supabase.from('advertisements').delete().eq('id', id);
+            if (error) { alert('දෝෂයකි: ' + error.message); return; }
+            const path = ad ? adStoragePath(ad.image_url) : null;
+            if (path) await supabase.storage.from(AD_BUCKET).remove([path]);
+            alert('Ad එක ඉවත් කරන ලදී!');
+            if (document.getElementById('adId').value === String(id)) resetAdForm();
+            loadAds();
+        };
+
+        // 5c. Customer Reviews moderation (table: reviews)
+        let allReviewsData = [];
+
+        // Works whether the table uses is_approved (boolean) or status ('approved'/'pending').
+        function rvApproved(r) {
+            if (r.is_approved === true || r.approved === true) return true;
+            return typeof r.status === 'string' && r.status.trim().toLowerCase() === 'approved';
+        }
+        function rvApprovalPayload(row, approved) {
+            if (row && ('status' in row) && !('is_approved' in row)) return { status: approved ? 'approved' : 'pending' };
+            return { is_approved: approved };
+        }
+
+        async function loadReviews() {
+            const tbody = document.getElementById('reviewsTableBody');
+            tbody.innerHTML = '<tr><td colspan="6">ලෝඩ් වෙමින් පවතී...</td></tr>';
+            const { data, error } = await supabase.from('reviews').select('*').order('created_at', { ascending: false });
+            if (error) {
+                tbody.innerHTML = `<tr><td colspan="6">දෝෂයකි: ${escapeHTML(error.message)} — run supabase_reviews.sql first.</td></tr>`;
+                return;
+            }
+            allReviewsData = data || [];
+            if ((!allProductsData || !allProductsData.length) && allReviewsData.some(r => r.product_id && !r.product_name)) {
+                try { const pr = await supabase.from('products').select('id,name'); if (pr.data) allProductsData = pr.data; } catch (e) {}
+            }
+            updateReviewsBadge();
+            renderReviewsTable();
+        }
+        window.loadReviews = loadReviews;
+
+        function updateReviewsBadge() {
+            const pending = allReviewsData.filter(r => !rvApproved(r)).length;
+            const el = document.getElementById('reviewsPendingBadge');
+            if (!el) return;
+            el.textContent = pending;
+            el.style.display = pending > 0 ? 'inline-block' : 'none';
+        }
+
+        window.filterReviews = function() { renderReviewsTable(); };
+
+        function renderReviewsTable() {
+            const tbody = document.getElementById('reviewsTableBody');
+            const f = document.getElementById('reviewFilter').value;
+            const tf = (document.getElementById('reviewTypeFilter') || {}).value || 'all';
+            const rows = allReviewsData.filter(r =>
+                (f === 'all' || (f === 'pending' ? !rvApproved(r) : rvApproved(r))) &&
+                (tf === 'all' || (tf === 'product' ? !!r.product_id : !r.product_id)));
+            if (!rows.length) { tbody.innerHTML = '<tr><td colspan="6">Reviews නැත.</td></tr>'; return; }
+            tbody.innerHTML = '';
+            rows.forEach(r => {
+                const rating = Math.min(5, Math.max(0, parseInt(r.rating, 10) || 0));
+                const stars = '★'.repeat(rating) + '☆'.repeat(5 - rating);
+                let whenHtml = '-';
+                if (r.created_at) { const d = new Date(r.created_at); whenHtml = '<b>' + escapeHTML(d.toLocaleDateString()) + '</b>' + escapeHTML(d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })); }
+                let prodHtml = '<span class="gen">General (site)</span>';
+                if (r.product_id) {
+                    const pr = (typeof allProductsData !== 'undefined' ? allProductsData : []).find(p => String(p.id) === String(r.product_id));
+                    prodHtml = escapeHTML(r.product_name || (pr && pr.name) || ('Product #' + r.product_id));
+                }
+                const status = rvApproved(r)
+                    ? '<span class="badge badge-delivered">Approved</span>'
+                    : '<span class="badge badge-pending">Pending</span>';
+                const toggleBtn = rvApproved(r)
+                    ? `<button class="btn-primary" onclick="setReviewApproval('${r.id}', false)">⏸️ Unapprove</button>`
+                    : `<button class="btn-success" onclick="setReviewApproval('${r.id}', true)">✅ Approve</button>`;
+                tbody.innerHTML += `
+                    <tr>
+                        <td class="rv-date">${whenHtml}</td>
+                        <td class="rv-cust">${escapeHTML(r.customer_name || r.name) || '-'}</td>
+                        <td class="rv-prod">${prodHtml}</td>
+                        <td style="color:#f5a623; white-space:nowrap;">${stars}</td>
+                        <td class="rv-text">${escapeHTML(r.comment || r.review || r.message)}</td>
+                        <td class="rv-act"><div class="rv-btns">
+                            <div style="margin-bottom:2px;">${status}</div>
+                            ${toggleBtn}
+                            <button class="btn-danger" onclick="deleteReview('${r.id}')">🗑️ Delete</button>
+                        </div></td>
+                    </tr>`;
+            });
+        }
+
+        window.setReviewApproval = async function(id, approved) {
+            const rowBefore = allReviewsData.find(r => String(r.id) === String(id));
+            const { data, error } = await supabase.from('reviews').update(rvApprovalPayload(rowBefore, approved)).eq('id', id).select();
+            if (error) { alert('දෝෂයකි: ' + error.message); return; }
+            if (!data || data.length === 0) { alert('යාවත්කාලීන කිරීම අසාර්ථකයි: RLS policy මගින් අවහිර කර ඇත (supabase_reviews.sql පරීක්ෂා කරන්න).'); return; }
+            const row = allReviewsData.find(r => String(r.id) === String(id));
+            if (row) Object.assign(row, rvApprovalPayload(row, approved));
+            updateReviewsBadge();
+            renderReviewsTable();
+        };
+
+        window.deleteReview = async function(id) {
+            if (!confirm('මෙම review එක ඉවත් කිරීමට අවශ්‍ය බව සැබෑද?')) return;
+            const { data, error } = await supabase.from('reviews').delete().eq('id', id).select();
+            if (error) { alert('දෝෂයකි: ' + error.message); return; }
+            if (!data || data.length === 0) { alert('ඉවත් කිරීම අසාර්ථකයි: RLS policy මගින් අවහිර කර ඇත.'); return; }
+            allReviewsData = allReviewsData.filter(r => String(r.id) !== String(id));
+            updateReviewsBadge();
+            renderReviewsTable();
+        };
+
+        // 6. Backup & Restore
+        window.downloadBackup = async function() {
+            try {
+                alert('බැකප් එක සකස් කරමින් පවතී...');
+                const [products, orders, customers, coupons, categories] = await Promise.all([
+                    fetchAllRows('products'),
+                    fetchAllRows('orders'),
+                    fetchAllRows('customers'),
+                    supabase.from('coupons').select('*'),
+                    supabase.from('categories').select('*')
+                ]);
+
+                const backupData = {
+                    version: "1.0",
+                    timestamp: new Date().toISOString(),
+                    tables: {
+                        products: products.data || [],
+                        orders: orders.data || [],
+                        customers: customers.data || [],
+                        coupons: coupons.data || [],
+                        categories: categories.data || []
+                    }
+                };
+
+                const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupData, null, 2));
+                const downloadAnchor = document.createElement('a');
+                downloadAnchor.setAttribute("href", dataStr);
+                downloadAnchor.setAttribute("download", `smartpart_backup_${new Date().toISOString().slice(0,10)}.json`);
+                document.body.appendChild(downloadAnchor);
+                downloadAnchor.click();
+                downloadAnchor.remove();
+                alert('බැකප් එක සාර්ථකව ඩවුන්ලෝඩ් විය!');
+            } catch (err) {
+                alert('දෝෂයක් ඇති විය: ' + err.message);
+            }
+        }
+
+        window.restoreBackup = async function() {
+            const fileInput = document.getElementById('restoreFile');
+            if(fileInput.files.length === 0) { alert('කරුණාකර ගොනුවක් තෝරන්න!'); return; }
+            if(!confirm('Restore කරන්නේ Products, Coupons සහ Categories පමණයි.\nOrders සහ Customers මේකෙන් ආපසු ලැබෙන්නේ නැහැ. දැනට තියෙන products ඒ backup එකේ අගයන්ගෙන් උඩින් ලියැවෙනවා. දිගටම කරන්නද?')) return;
+
+            const file = fileInput.files[0];
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                try {
+                    const content = JSON.parse(e.target.result);
+                    if(content.tables?.products) await supabase.from('products').upsert(content.tables.products);
+                    if(content.tables?.coupons) await supabase.from('coupons').upsert(content.tables.coupons, { onConflict: 'code' });
+                    if(content.tables?.categories) await supabase.from('categories').upsert(content.tables.categories);
+                    alert('දත්ත සාර්ථකව Restore කරන ලදී!');
+                    location.reload();
+                } catch (err) {
+                    alert('Restore කිරීම අසාර්ථකයි: ' + err.message);
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        // 7. Dashboard Stats & Charts Loader
+        async function loadDashboardStats() {
+            try {
+                const { count: prodCount } = await supabase.from('products').select('*', { count: 'exact', head: true });
+                document.getElementById('statProducts').innerText = prodCount || 0;
+
+                const { data: ordersData } = await supabase.from('orders').select('total_amount, total');
+                if (ordersData) {
+                    document.getElementById('statOrders').innerText = ordersData.length;
+                    let revenue = ordersData.reduce((sum, order) => sum + orderTotal(order), 0);
+                    document.getElementById('statRevenue').innerText = revenue.toLocaleString();
+                }
+
+                const { count: custCount } = await supabase.from('customers').select('*', { count: 'exact', head: true });
+                document.getElementById('statCustomers').innerText = custCount || 0;
+
+                const { count: coupCount } = await supabase.from('coupons').select('*', { count: 'exact', head: true });
+                document.getElementById('statCoupons').innerText = coupCount || 0;
+                v33Profit();
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        async function renderCharts() {
+            // Fetch Orders status
+            const { data: orders } = await supabase.from('orders').select('status');
+            let pendingCount = 0, confirmedCount = 0, shippingCount = 0, deliveredCount = 0, cancelledCount = 0;
+            if (orders) {
+                orders.forEach(o => {
+                    const _st = normStatus(o.status);
+                    if (_st === 'Pending') pendingCount++;
+                    else if (_st === 'Confirmed') confirmedCount++;
+                    else if (_st === 'Shipping') shippingCount++;
+                    else if (_st === 'Delivered') deliveredCount++;
+                    else if (_st === 'Cancelled') cancelledCount++;
+                });
+            }
+
+            const ctx1 = document.getElementById('orderStatusChart').getContext('2d');
+            if (statusChartInstance) statusChartInstance.destroy();
+            statusChartInstance = new Chart(ctx1, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Pending', 'Confirmed', 'Shipping', 'Delivered', 'Cancelled'],
+                    datasets: [{
+                        data: [pendingCount, confirmedCount, shippingCount, deliveredCount, cancelledCount],
+                        backgroundColor: ['#f5a623', '#4da3ff', '#00f0ff', '#00ffcc', '#ff3366']
+                    }]
+                },
+                options: { responsive: true, plugins: { legend: { labels: { color: '#ffffff' } } } }
+            });
+
+            // Fetch Products categories breakdown
+            const { data: products } = await supabase.from('products').select('category');
+            let catMap = {};
+            if (products) {
+                products.forEach(p => {
+                    let cat = p.category || 'Other';
+                    catMap[cat] = (catMap[cat] || 0) + 1;
+                });
+            }
+
+            const ctx2 = document.getElementById('categoryChart').getContext('2d');
+            if (categoryChartInstance) categoryChartInstance.destroy();
+            categoryChartInstance = new Chart(ctx2, {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(catMap),
+                    datasets: [{
+                        label: 'Products Count',
+                        data: Object.values(catMap),
+                        backgroundColor: '#ff007f'
+                    }]
+                },
+                options: { responsive: true, scales: { x: { ticks: { color: '#ffffff' } }, y: { ticks: { color: '#ffffff' } } }, plugins: { legend: { labels: { color: '#ffffff' } } } }
+            });
+        }
+
+        // ===== v33 additions: bulk edit, reorder list, profit, pending reminder =====
+        const v33q = v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"';
+        function v33csv(name, rows) {
+            const blob = new Blob(['\ufeff' + rows.map(r => r.map(v33q).join(',')).join('\r\n')], { type: 'text/csv;charset=utf-8' });
+            const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name;
+            document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+        }
+        function v33loc(iso) { if (!iso) return ''; const d = new Date(iso); return isNaN(d) ? '' : new Date(d - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16); }
+        function v33CostPart() { const o = {}, v = parseFloat(document.getElementById('pCost')?.value), sv = document.getElementById('pSale')?.value; if (!isNaN(v)) o.cost_price = v; if (sv) o.sale_ends_at = new Date(sv).toISOString(); return o; }
+        (function v33Init() {
+            const refresh = document.querySelector('#manageProducts button[onclick="loadProducts()"]');
+            if (refresh) refresh.insertAdjacentHTML('afterend',
+                '<button class="btn-primary" onclick="v33BulkOpen()">✏️ Bulk edit</button><button class="btn-primary" onclick="v33Reorder()">📋 Reorder list</button>');
+            const st = document.getElementById('pStock')?.closest('.form-group');
+            if (st) st.insertAdjacentHTML('afterend', '<div class="form-group"><label>Cost price (LKR) — profit report සඳහා</label><input type="number" id="pCost" min="0" step="any" placeholder="උදා: 15000"></div><div class="form-group"><label>Flash sale ends at (විකල්ප — countdown එකට; ඉවර වුණාම මිල auto පරණ මිලට යනවා)</label><input type="datetime-local" id="pSale"></div>');
+        })();
+
+        // --- Bulk edit ---
+        let v33Rows = [];
+        window.v33BulkOpen = function () {
+            const q = (document.getElementById('productSearchInput')?.value || '').toLowerCase();
+            v33Rows = allProductsData.filter(p => String(p.name || '').toLowerCase().includes(q));
+            const hasCost = allProductsData.some(p => 'cost_price' in p);
+            const cats = allCategoriesData.map(c => c.slug);
+            v33Rows.forEach(p => { if (p.category && !cats.includes(p.category)) cats.push(p.category); });
+            const catOpts = sel => '<option value="">—</option>' + cats.map(c => `<option value="${escapeHTML(c)}" ${c === sel ? 'selected' : ''}>${escapeHTML(categoryNameForSlug(c))}</option>`).join('');
+            const inp = 'style="width:100%;min-width:80px;background:var(--bg-dark);border:1px solid var(--border);color:#fff;padding:5px;border-radius:6px"';
+            document.getElementById('v33Bulk')?.remove();
+            const ov = document.createElement('div'); ov.id = 'v33Bulk';
+            ov.style.cssText = 'position:fixed;inset:0;z-index:6000;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;padding:16px';
+            ov.innerHTML = `<div style="background:var(--card-bg);border:1px solid var(--border);border-radius:14px;width:min(1000px,100%);max-height:92vh;display:flex;flex-direction:column;padding:16px">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><h3>✏️ Bulk edit (${v33Rows.length} products${q ? ' — search filter එක අනුව' : ''})</h3><button class="btn-danger" onclick="document.getElementById('v33Bulk').remove()">✕</button></div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px;font-size:.85rem">
+                මිල % <input id="v33Pct" type="number" step="any" placeholder="+10 / -5" ${inp} style="width:90px"> <button class="btn-primary" onclick="v33Apply('pct')">Apply</button>
+                Stock + <input id="v33Add" type="number" placeholder="10" style="width:80px;background:var(--bg-dark);border:1px solid var(--border);color:#fff;padding:5px;border-radius:6px"> <button class="btn-primary" onclick="v33Apply('stock')">Apply</button>
+                Category <select id="v33Cat" style="background:var(--bg-dark);border:1px solid var(--border);color:#fff;padding:5px;border-radius:6px">${catOpts('')}</select> <button class="btn-primary" onclick="v33Apply('cat')">Apply</button>
+              </div>
+              <div style="overflow:auto;flex:1"><table><thead><tr><th>නම</th><th>මිල</th><th>Stock</th>${hasCost ? '<th>Cost</th><th>Sale ends</th>' : ''}<th>Category</th></tr></thead><tbody>
+              ${v33Rows.map((p, i) => `<tr data-i="${i}"><td>${escapeHTML(p.name)}</td><td><input data-f="price" type="number" step="any" value="${p.price ?? ''}" ${inp}></td><td><input data-f="stock" type="number" value="${p.stock ?? 0}" ${inp}></td>${hasCost ? `<td><input data-f="cost_price" type="number" step="any" value="${p.cost_price ?? ''}" ${inp}></td><td><input data-f="sale_ends_at" type="datetime-local" data-o="${v33loc(p.sale_ends_at)}" value="${v33loc(p.sale_ends_at)}" ${inp}></td>` : ''}<td><select data-f="category" ${inp}>${catOpts(p.category)}</select></td></tr>`).join('')}
+              </tbody></table></div>
+              <div style="margin-top:10px;display:flex;gap:10px;align-items:center"><button class="btn-success" id="v33SaveBtn" onclick="v33Save()">💾 වෙනස් කරපු ඒවා Save කරන්න</button><span id="v33Msg" style="color:var(--text-muted);font-size:.85rem"></span></div></div>`;
+            document.body.appendChild(ov);
+        };
+        window.v33Apply = function (kind) {
+            const rows = document.querySelectorAll('#v33Bulk tbody tr');
+            const pct = parseFloat(document.getElementById('v33Pct').value), add = parseInt(document.getElementById('v33Add').value, 10), cat = document.getElementById('v33Cat').value;
+            rows.forEach(tr => {
+                const g = f => tr.querySelector(`[data-f="${f}"]`);
+                if (kind === 'pct' && !isNaN(pct)) g('price').value = Math.max(0, Math.round(Number(g('price').value || 0) * (1 + pct / 100)));
+                if (kind === 'stock' && !isNaN(add)) g('stock').value = Math.max(0, Number(g('stock').value || 0) + add);
+                if (kind === 'cat' && cat) g('category').value = cat;
+            });
+        };
+        window.v33Save = async function () {
+            const btn = document.getElementById('v33SaveBtn'), msg = document.getElementById('v33Msg'); btn.disabled = true;
+            const jobs = [];
+            document.querySelectorAll('#v33Bulk tbody tr').forEach(tr => {
+                const p = v33Rows[+tr.dataset.i], ch = {};
+                tr.querySelectorAll('[data-f]').forEach(el => {
+                    const f = el.dataset.f; let v = el.value;
+                    if (f === 'sale_ends_at') { if (v !== el.dataset.o) ch.sale_ends_at = v ? new Date(v).toISOString() : null; return; }
+                    if (f === 'category') { if (v && v !== p.category) ch.category = v; return; }
+                    if (v === '') { return; }
+                    v = f === 'stock' ? parseInt(v, 10) : parseFloat(v);
+                    if (isNaN(v) || v < 0) return;
+                    if (v !== p[f]) ch[f] = v;
+                });
+                if (Object.keys(ch).length) jobs.push({ id: p.id, ch });
+            });
+            if (!jobs.length) { msg.textContent = 'වෙනස් වුණු දෙයක් නැහැ.'; btn.disabled = false; return; }
+            let ok = 0, fail = 0, firstErr = '';
+            for (let i = 0; i < jobs.length; i += 10) {
+                await Promise.all(jobs.slice(i, i + 10).map(async j => {
+                    const { data, error } = await supabase.from('products').update(j.ch).eq('id', j.id).select();
+                    if (error || !data || !data.length) { fail++; if (!firstErr) firstErr = error ? error.message : 'RLS policy block කළා'; } else ok++;
+                }));
+                msg.textContent = `Saving… ${Math.min(i + 10, jobs.length)}/${jobs.length}`;
+            }
+            msg.textContent = `✅ ${ok} updated` + (fail ? ` · ❌ ${fail} failed (${firstErr})` : '');
+            btn.disabled = false;
+            await loadProducts(); try { loadDashboardStats(); checkLowStockAlerts(); } catch (e) {}
+            if (!fail) setTimeout(() => document.getElementById('v33Bulk')?.remove(), 900);
+        };
+
+        // --- Low stock reorder list (CSV) ---
+        window.v33Reorder = function () {
+            const th = parseInt(prompt('Stock මේ ගානට වඩා අඩු/සමාන products ගන්න (reorder level):', '5'), 10); if (isNaN(th)) return;
+            const target = parseInt(prompt('හැම product එකකම stock එක කීයට වෙනකම් order කරන්නද? (target stock):', '20'), 10); if (isNaN(target)) return;
+            const low = allProductsData.filter(p => Number(p.stock || 0) <= th).sort((a, b) => Number(a.stock || 0) - Number(b.stock || 0));
+            if (!low.length) { alert('Stock අඩු products නැහැ 👍'); return; }
+            const rows = [['Product', 'Brand', 'Category', 'Current stock', 'Order qty', 'Unit cost (LKR)', 'Est. cost (LKR)']];
+            let tot = 0;
+            low.forEach(p => { const q = Math.max(target - Number(p.stock || 0), 0), c = parseFloat(p.cost_price), est = isNaN(c) ? '' : q * c; if (est !== '') tot += est; rows.push([p.name, p.brand || '', categoryNameForSlug(p.category) || '', p.stock || 0, q, isNaN(c) ? '' : c, est]); });
+            rows.push(['', '', '', '', '', 'TOTAL', tot]);
+            v33csv('reorder-list-' + new Date().toISOString().slice(0, 10) + '.csv', rows);
+        };
+
+        // --- Profit (dashboard) ---
+        async function v33Profit() {
+            try {
+                const host = document.getElementById('statRevenue')?.closest('.stat-card'); if (!host) return;
+                if (!document.getElementById('statProfit')) host.insertAdjacentHTML('afterend', '<div class="stat-card"><h4>Est. Profit (LKR)</h4><p id="statProfit">0</p><small id="statMargin" style="color:var(--text-muted)"></small></div>');
+                const [pr, od] = await Promise.all([fetchAllRows('products'), fetchAllRows('orders')]);
+                const prods = pr.data || [], note = document.getElementById('statMargin');
+                if (!prods.some(p => 'cost_price' in p)) { document.getElementById('statProfit').textContent = '—'; note.textContent = 'products table එකට cost_price column එක add කරන්න (SQL file එක බලන්න)'; return; }
+                const byId = new Map(), byName = new Map();
+                prods.forEach(p => { if (p.cost_price != null && p.cost_price !== '') { byId.set(String(p.id), +p.cost_price); byName.set(String(p.name).toLowerCase(), +p.cost_price); } });
+                let profit = 0, base = 0, miss = 0;
+                (od.data || []).forEach(o => {
+                    if (normStatus(o.status) === 'Cancelled') return;
+                    oItems(o).forEach(i => {
+                        const q = Number(i.qty || i.quantity || 1), pr_ = Number(i.price || 0);
+                        const c = byId.get(String(i.id ?? i.product_id)) ?? byName.get(String(i.name || '').toLowerCase());
+                        if (c == null) { miss++; return; }
+                        profit += (pr_ - c) * q; base += pr_ * q;
+                    });
+                });
+                document.getElementById('statProfit').textContent = Math.round(profit).toLocaleString();
+                note.textContent = (base ? 'Margin ' + (profit / base * 100).toFixed(1) + '%' : '') + (miss ? ` · cost නැති items ${miss}ක් ගණන් ගත්තේ නැහැ` : '');
+            } catch (e) { console.warn('profit', e); }
+        }
+
+        // --- Pending 30+ min reminder ---
+        let v33Last = 0;
+        async function v33PendingCheck() {
+            const dw = document.getElementById('dashboardWrapper'); if (!dw || dw.style.display === 'none') return;
+            if (Date.now() - v33Last < 10 * 60000) return;
+            try {
+                const lim = new Date(Date.now() - 30 * 60000).toISOString(), since = new Date(Date.now() - 3 * 864e5).toISOString();
+                const { data } = await supabase.from('orders').select('id,order_number').or('status.ilike.pending,status.is.null').lt('created_at', lim).gt('created_at', since).limit(50);
+                if (!data || !data.length) return;
+                v33Last = Date.now(); beep(); setTimeout(() => beep(), 1500);
+                const tip = document.createElement('div'); tip.className = 'notif-toast';
+                tip.innerHTML = `<b>⏰ Pending orders ${data.length}ක්</b><br>විනාඩි 30කට වඩා handle කරලා නැහැ`;
+                tip.onclick = () => { switchTab('orders'); tip.remove(); };
+                document.body.appendChild(tip); setTimeout(() => tip.remove(), 10000);
+            } catch (e) { console.warn(e); }
+        }
+        setInterval(v33PendingCheck, 60000);
+    </script>
+<script>
+/* Install-as-app button (Chrome/Edge/Android prompt; iOS & others get instructions) */
+(function () {
+  var deferred = null, btn = function () { return document.getElementById('installAppBtn'); };
+  var standalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+  function hide() { var b = btn(); if (b) b.style.display = 'none'; }
+  if (standalone) { document.addEventListener('DOMContentLoaded', hide); hide(); }
+  window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); deferred = e; });
+  window.addEventListener('appinstalled', function () { deferred = null; hide(); });
+  window.installAdminApp = function () {
+    if (deferred) { deferred.prompt(); deferred.userChoice.finally(function () { deferred = null; }); return; }
+    var ios = /iphone|ipad|ipod/i.test(navigator.userAgent);
+    alert(ios ? 'iPhone/iPad: Safari eke Share (⬆️) button eka ebuwama "Add to Home Screen" thoranna.'
+              : 'Browser menu (⋮) eke "Install app" / "Add to Home screen" thoranna. (HTTPS site ekakin open karala thiyenna one.)');
+  };
+})();
+</script>
+<script>
+document.addEventListener('click', function (e) {
+  if (e.target.closest && e.target.closest('.sidebar .nav-btn') && !e.target.closest('#installAppBtn')) document.body.classList.remove('sb-open');
+});
+</script>
+</body>
+</html>
