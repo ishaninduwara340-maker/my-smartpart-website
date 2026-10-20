@@ -1,7 +1,9 @@
 @echo off
-echo Netlify Site එක Auto Update වෙමින් පවතී...
+chcp 65001 > nul
+echo Auto Updating Site...
+git pull origin main --rebase
 git add .
 git commit -m "Auto Update"
 git push origin main
-echo Upload වීම අවසන්!
+echo Done! Upload completed.
 timeout /t 3
