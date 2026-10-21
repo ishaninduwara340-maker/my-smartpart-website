@@ -1769,7 +1769,7 @@ body.dark-mode .modal-header{background:linear-gradient(135deg,#1a1a24,#241a30)}
 
 <div class="section sp-review-cta" id="spReviewCta">
   <button type="button" class="btn-primary" onclick="spOpenReview()">✍️ Add Review</button>
-  <p>ඔබේ අත්දැකීම අපිත් එක්ක share කරන්න — Share your experience with uss.</p>
+  <p>ඔබේ අත්දැකීම අපිත් එක්ක share කරන්න — Share your experience with ussss.</p>
 </div>
 
 <div id="faq" class="section" style="padding-bottom:0;">
@@ -5659,6 +5659,9 @@ input, select, textarea { border-radius: 12px; }
 
   /* Recently viewed */
   function rvRender() {
+    /* Recently viewed section disabled (was overlapping the sidebar) */
+    var _old = $('spRecent'); if (_old) _old.remove();
+    return;
     var list = (typeof PRODUCTS !== 'undefined' && Array.isArray(PRODUCTS)) ? PRODUCTS : [];
     var items = rvGet().map(function (id) { return list.find(function (p) { return String(p.id) === String(id); }); }).filter(Boolean);
     var box = $('spRecent');
