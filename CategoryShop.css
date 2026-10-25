@@ -8,7 +8,7 @@
   --cyan: #00f2fe;
   --purple: #9d4edd;
   --line: rgba(0, 242, 254, 0.28);
-  --grad: linear-gradient(90deg, #00f2fe, #6a5cff 55%, #9d4edd);
+  --grad: linear-gradient(90deg, #00f2fe, #b8070f 55%, #9d4edd);
 
   background: var(--bg);
   color: var(--text);
@@ -33,7 +33,7 @@
 .cs-card {
   flex: 0 0 calc((100% - 4 * 14px) / 5);
   display: flex; flex-direction: column; overflow: hidden; padding: 0; text-align: left; cursor: pointer;
-  border-radius: 14px; border: 1.5px solid rgba(47, 107, 255, 0.55);
+  border-radius: 14px; border: 1.5px solid rgba(229,9,20, 0.55);
   background: linear-gradient(180deg, #0f1430, #070a1c);
   transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
 }
@@ -74,7 +74,7 @@
 .cs-top { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
 .cs-back {
   min-height: 44px; padding: 0 16px; border-radius: 10px; cursor: pointer;
-  border: 1.5px solid #2f6bff; background: rgba(10, 22, 70, 0.6); font-weight: 500;
+  border: 1.5px solid #e50914; background: rgba(10, 22, 70, 0.6); font-weight: 500;
 }
 .cs-back:hover { border-color: var(--cyan); }
 .cs-title { margin: 0; font: 700 clamp(1.25rem, 3vw, 1.7rem) "Space Grotesk", sans-serif; }
@@ -87,7 +87,7 @@
 }
 .cs-pill {
   flex: none; min-height: 44px; padding: 0 16px; border-radius: 999px; white-space: nowrap; cursor: pointer;
-  scroll-snap-align: center; border: 1.5px solid rgba(47, 107, 255, 0.6); background: rgba(10, 22, 70, 0.55); color: #dbe5ff;
+  scroll-snap-align: center; border: 1.5px solid rgba(229,9,20, 0.6); background: rgba(10, 22, 70, 0.55); color: #dbe5ff;
   transition: border-color 0.18s, box-shadow 0.18s, transform 0.18s;
 }
 .cs-pill:hover { border-color: var(--cyan); transform: translateY(-1px); }
@@ -101,14 +101,14 @@
 .cs-f { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; font-weight: 600; color: var(--muted); }
 .cs-f select, .cs-f input[type="number"] {
   min-height: 44px; padding: 0 12px; border-radius: 8px; outline: none;
-  background: var(--surface-2); border: 1.5px solid rgba(47, 107, 255, 0.5); color: var(--text); font-size: 0.9rem;
+  background: var(--surface-2); border: 1.5px solid rgba(229,9,20, 0.5); color: var(--text); font-size: 0.9rem;
 }
 .cs-f input[type="number"] { width: 104px; }
 .cs-f select:focus, .cs-f input:focus { border-color: var(--cyan); box-shadow: 0 0 0 3px rgba(0, 242, 254, 0.18); }
 .cs-check { color: var(--text); cursor: pointer; min-height: 44px; }
 .cs-check input { width: 20px; height: 20px; accent-color: var(--cyan); cursor: pointer; }
 .cs-reset { min-height: 44px; padding: 0 16px; border-radius: 999px; cursor: pointer; background: transparent;
-  border: 1.5px solid rgba(47, 107, 255, 0.5); color: var(--muted); }
+  border: 1.5px solid rgba(229,9,20, 0.5); color: var(--muted); }
 .cs-reset:hover { color: var(--cyan); border-color: var(--cyan); }
 
 @media (max-width: 600px) {
@@ -124,16 +124,16 @@
 .cs-products { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
 .cs-product { display: flex; flex-direction: column; gap: 6px; padding: 16px; border-radius: 14px;
-  background: linear-gradient(180deg, #0f1430, #070a1c); border: 1.5px solid rgba(47, 107, 255, 0.45); }
+  background: linear-gradient(180deg, #0f1430, #070a1c); border: 1.5px solid rgba(229,9,20, 0.45); }
 .cs-product:hover { border-color: var(--cyan); box-shadow: 0 0 20px rgba(0, 242, 254, 0.2); }
 .cs-product h3 { margin: 0; font: 600 1rem "Space Grotesk", sans-serif; }
 .cs-meta2 { margin: 0; font-size: 0.8rem; color: var(--muted); }
-.cs-product strong { color: #3df5d0; font-size: 1.05rem; margin-top: 4px; }
+.cs-product strong { color: #ffffff; font-size: 1.05rem; margin-top: 4px; }
 .cs-product button { margin-top: 8px; min-height: 44px; border: 0; border-radius: 10px; cursor: pointer; font-weight: 700; color: #fff; background: var(--grad); }
 .cs-product button:disabled { opacity: 0.5; cursor: not-allowed; }
 .cs-stock { align-self: flex-start; font-size: 0.7rem; font-weight: 700; padding: 3px 9px; border-radius: 999px; border: 1px solid; }
-.cs-stock.in { color: #3df5d0; border-color: rgba(61, 245, 208, 0.55); }
-.cs-stock.out { color: #ff7ad9; border-color: rgba(255, 43, 214, 0.6); }
+.cs-stock.in { color: #ffffff; border-color: rgba(61, 245, 208, 0.55); }
+.cs-stock.out { color: #ff7ad9; border-color: rgba(255,45,58, 0.6); }
 .cs-empty { text-align: center; padding: 48px 16px; color: var(--muted); }
 .cs-empty button { margin-top: 10px; min-height: 44px; padding: 0 18px; border-radius: 999px; cursor: pointer;
   border: 1.5px solid var(--cyan); background: transparent; color: var(--cyan); }

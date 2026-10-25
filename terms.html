@@ -7,23 +7,24 @@
 <link rel="stylesheet" href="sp-pages.css">
 <style>
 .tc-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start}
-.tc-head{display:flex;gap:18px;align-items:center;padding-bottom:18px;margin-bottom:18px;border-bottom:2px solid;border-image:linear-gradient(90deg,#00e5ff,#2f6bff 60%,transparent) 1}
-.tc-head svg{width:62px;height:62px;flex-shrink:0;stroke:url(#gg);fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 0 8px rgba(0,229,255,.5))}
-.tc-head h1{font-size:2.15rem;line-height:1.1;letter-spacing:-.02em}
-.tc-head h1 em{font-style:normal;background:linear-gradient(90deg,#00e5ff,#7a3dff);-webkit-background-clip:text;background-clip:text;color:transparent}
+.tc-head{display:flex;gap:18px;align-items:center;padding-bottom:18px;margin-bottom:18px;border-bottom:2px solid;border-image:linear-gradient(90deg,#ff3b47,#e50914 60%,transparent) 1}
+.tc-head svg{width:62px;height:62px;flex-shrink:0;stroke:url(#gg);fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 0 8px rgba(229,9,20,.5))}
+.tc-head h1,.tc-head h2{font-size:2.15rem;line-height:1.1;letter-spacing:-.02em}
+.tc-head h1 em,.tc-head h2 em{font-style:normal;background:linear-gradient(90deg,#ff3b47,#7a3dff);-webkit-background-clip:text;background-clip:text;color:transparent}
 .tc-head p{color:var(--muted);font-size:.95rem;margin-top:4px}
 .tc-list{list-style:none;display:flex;flex-direction:column;gap:20px}
 .tc-list li{display:flex;gap:16px;align-items:flex-start}
-.tc-list .n{flex-shrink:0;width:42px;height:42px;border-radius:50%;display:grid;place-items:center;font:700 .98rem 'Space Grotesk',sans-serif;border:2px solid transparent;background-image:linear-gradient(#060b28,#060b28),linear-gradient(135deg,#00e5ff,#8b3dff,#ff2bd6);background-origin:border-box;background-clip:padding-box,border-box}
+.tc-list .n{flex-shrink:0;width:42px;height:42px;border-radius:50%;display:grid;place-items:center;font:700 .98rem 'Space Grotesk',sans-serif;border:2px solid transparent;background-image:linear-gradient(#060b28,#060b28),linear-gradient(135deg,#ff3b47,#8b3dff,#ff2d3a);background-origin:border-box;background-clip:padding-box,border-box}
 .tc-list h4{font:700 1rem 'IBM Plex Sans',sans-serif;margin-bottom:3px}
 .tc-list p{color:#cdd7f5;font-size:.9rem}
 .tc-list p a{color:var(--cyan)}
-@media(max-width:980px){.tc-grid{grid-template-columns:1fr}.tc-head h1{font-size:1.7rem}}
+.tc-grid>*,.tc-list li>div{min-width:0}.tc-list p,.tc-list h4{overflow-wrap:anywhere}
+@media(max-width:980px){.tc-grid{grid-template-columns:minmax(0,1fr)}.tc-head h1,.tc-head h2{font-size:1.7rem}}
 </style></head><body>
 <div id="spxHead" data-active="about"></div>
 <main class="spx-wrap">
 <div class="spx-crumbs"><a href="index.html">Home</a><i>&rsaquo;</i><span>Terms &amp; Conditions</span></div>
-<svg width="0" height="0" style="position:absolute"><defs><linearGradient id="gg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#00e5ff"/><stop offset="1" stop-color="#8b3dff"/></linearGradient></defs></svg>
+<svg width="0" height="0" style="position:absolute"><defs><linearGradient id="gg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff3b47"/><stop offset="1" stop-color="#8b3dff"/></linearGradient></defs></svg>
 <div class="tc-grid">
 <section class="panel" id="terms">
   <div class="tc-head"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg>
@@ -32,7 +33,7 @@
 </section>
 <section class="panel" id="privacy">
   <div class="tc-head"><svg viewBox="0 0 24 24"><path d="M12 2 4 5v6c0 5 3.400 9.300 8 11 4.600-1.700 8-6 8-11V5z"/><rect x="9" y="11" width="6" height="5" rx="1"/><path d="M10 11V9a2 2 0 0 1 4 0v2"/></svg>
-  <div><h1>Privacy <em>Policy</em></h1><p>Your privacy is important to us. This policy explains how we collect, use and protect your information.</p></div></div>
+  <div><h2>Privacy <em>Policy</em></h2><p>Your privacy is important to us. This policy explains how we collect, use and protect your information.</p></div></div>
   <ul class="tc-list"><li><span class="n">01</span><div><h4>Information We Collect</h4><p>We collect personal information such as your name, email address, phone number, shipping address and payment details when you place an order or create an account.</p></div></li><li><span class="n">02</span><div><h4>How We Use Your Information</h4><p>Your information is used to process orders, provide customer support, improve our services and send promotional updates (with your consent).</p></div></li><li><span class="n">03</span><div><h4>Data Protection</h4><p>We use industry-standard security measures to protect your personal data from unauthorized access, alteration or disclosure.</p></div></li><li><span class="n">04</span><div><h4>Sharing Your Information</h4><p>We do not sell, rent or trade your personal information to third parties, except when required by law or to process your order (e.g., payment gateways, shipping partners).</p></div></li><li><span class="n">05</span><div><h4>Cookies</h4><p>Our website uses cookies to enhance your browsing experience, analyze traffic and improve our services. You can manage cookie preferences in your browser settings.</p></div></li><li><span class="n">06</span><div><h4>Your Rights</h4><p>You have the right to access, correct or delete your personal information at any time. For any requests, please contact us at <a href="mailto:ishaninduwara36@gmail.com">ishaninduwara36@gmail.com</a>.</p></div></li></ul>
 </section>
 </div>

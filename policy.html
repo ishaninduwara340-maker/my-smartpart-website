@@ -8,10 +8,10 @@
 <link rel="icon" type="image/png" href="icon.png">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&family=Noto+Sans+Sinhala:wght@400;600&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#040716;--card:#080d28;--cy:#00e5ff;--bl:#2f6bff;--pu:#a53dff;--mg:#ff2bd6;--tx:#eaf0ff;--mu:#9fb0d8;--ln:rgba(0,229,255,.28)}
+:root{--bg:#040716;--card:#080d28;--cy:#ff3b47;--bl:#e50914;--pu:#b8070f;--mg:#ff2d3a;--tx:#eaf0ff;--mu:#9fb0d8;--ln:rgba(229,9,20,.28)}
 *{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
-body{background:radial-gradient(900px 500px at 85% -5%,rgba(165,61,255,.22),transparent 60%),radial-gradient(800px 500px at 0 0,rgba(0,229,255,.14),transparent 60%),var(--bg);color:var(--tx);font:400 15px/1.6 'IBM Plex Sans',system-ui,sans-serif;min-height:100vh}
+body{background:radial-gradient(900px 500px at 85% -5%,rgba(184,7,15,.22),transparent 60%),radial-gradient(800px 500px at 0 0,rgba(229,9,20,.14),transparent 60%),var(--bg);color:var(--tx);font:400 15px/1.6 'IBM Plex Sans',system-ui,sans-serif;min-height:100vh}
 a{color:var(--cy);text-decoration:none}
 .si{font-family:'Noto Sans Sinhala','IBM Plex Sans',sans-serif}
 .top{display:flex;align-items:center;justify-content:space-between;padding:12px clamp(14px,4vw,40px);border-bottom:1px solid var(--ln);background:rgba(4,7,22,.9);position:sticky;top:0;z-index:5;backdrop-filter:blur(8px)}
@@ -20,7 +20,7 @@ a{color:var(--cy);text-decoration:none}
 .brand b{font:700 1.45rem 'Space Grotesk',sans-serif;letter-spacing:-.01em}.brand b em{font-style:normal;color:var(--mg)}
 .brand small{display:block;font-size:.68rem;color:var(--cy);letter-spacing:.06em}
 .back{border:1.5px solid var(--cy);border-radius:10px;padding:8px 16px;font-weight:600;font-size:.88rem}
-.back:hover{background:rgba(0,229,255,.1)}
+.back:hover{background:rgba(229,9,20,.1)}
 .hero{padding:34px clamp(14px,4vw,40px) 8px;max-width:1100px;margin:0 auto}
 .hero h1{font:700 clamp(2rem,5vw,3rem)/1.1 'Space Grotesk',sans-serif}
 .hero h1 em{font-style:normal;background:linear-gradient(90deg,var(--cy),var(--bl),var(--mg));-webkit-background-clip:text;background-clip:text;color:transparent}
@@ -28,7 +28,7 @@ a{color:var(--cy);text-decoration:none}
 .tabs{max-width:1100px;margin:18px auto 0;padding:0 clamp(14px,4vw,40px);display:flex;gap:10px;flex-wrap:wrap}
 .tabs a{display:flex;align-items:center;gap:8px;padding:10px 18px;border:1px solid var(--ln);border-radius:999px;color:var(--tx);font-weight:500;font-size:.9rem;background:rgba(8,13,40,.8)}
 .tabs a svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
-.tabs a.on{background:linear-gradient(90deg,var(--mg),var(--pu));border-color:transparent;color:#fff;box-shadow:0 0 18px rgba(255,43,214,.4)}
+.tabs a.on{background:linear-gradient(90deg,var(--mg),var(--pu));border-color:transparent;color:#fff;box-shadow:0 0 18px rgba(255,45,58,.4)}
 main{max-width:1100px;margin:18px auto 50px;padding:0 clamp(14px,4vw,40px);display:grid;gap:16px}
 section{border:1px solid var(--ln);border-radius:14px;background:linear-gradient(180deg,rgba(10,16,52,.7),rgba(6,10,34,.85));padding:20px 22px;display:grid;grid-template-columns:54px 1fr;gap:16px;scroll-margin-top:90px}
 section.hide{display:none}
@@ -44,9 +44,9 @@ hr{border:0;border-top:1px solid var(--ln);margin:12px 0 0}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:20px}
 @media(max-width:760px){section{grid-template-columns:1fr}.two{grid-template-columns:1fr}}
 footer{border-top:1px solid var(--ln);padding:22px clamp(14px,4vw,40px);display:flex;flex-wrap:wrap;gap:14px;justify-content:space-between;align-items:center;color:var(--mu);font-size:.85rem;background:rgba(4,7,22,.9)}
-footer .pay{display:flex;gap:8px;align-items:center}
+footer .pay{display:flex;flex-wrap:wrap;gap:8px;align-items:center;max-width:100%}
 footer .pay i{font:700 .7rem 'Space Grotesk';font-style:normal;padding:5px 9px;border-radius:5px;background:#1a3fb5;color:#fff}
-footer .pay i.k{background:#6d1ee0}footer .pay i.e{background:#ffc21a;color:#222}footer .pay i.m{background:#e53b3b}
+footer .pay i.m{background:#e53b3b}
 :focus-visible{outline:2px solid var(--cy);outline-offset:2px}
 </style>
 </head>
@@ -138,7 +138,7 @@ footer .pay i.k{background:#6d1ee0}footer .pay i.e{background:#ffc21a;color:#222
 </main>
 <footer>
   <span>&copy; 2026 SmartParts. All rights reserved.</span>
-  <span class="pay">We Accept <i>VISA</i><i class="m">MC</i><i class="k">KOKO</i><i class="e">eZ Cash</i><i>Bank Transfer</i></span>
+  <span class="pay">We Accept <i>VISA</i><i class="m">MC</i><i>Bank Transfer</i></span>
 </footer>
 <script>
 (function(){
