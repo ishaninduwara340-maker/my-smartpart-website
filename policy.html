@@ -3,292 +3,155 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Policies | SmartPart</title>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&family=Noto+Sans+Sinhala:wght@400;500;600;700&display=swap" rel="stylesheet">
+<title>SmartParts Policies — Terms, Privacy, Returns, Contact</title>
+<meta name="theme-color" content="#040716">
+<link rel="icon" type="image/png" href="icon.png">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&family=Noto+Sans+Sinhala:wght@400;600&display=swap" rel="stylesheet">
 <style>
-:root {
-  --bg: #0d0d15;
-  --surface: #12121a;
-  --surface-2: #1a1a24;
-  --text: #f1f1f5;
-  --muted: #a0a0b2;
-  --muted-2: #7a7a8c;
-  --accent: #ff007f;
-  --cyan: #00f0ff;
-  --border: rgba(255,255,255,0.08);
-  --border-strong: rgba(255,0,127,0.3);
-}
-* { box-sizing: border-box; margin: 0; padding: 0; }
-html { scroll-behavior: smooth; scroll-padding-top: 90px; }
-body {
-  font-family: 'IBM Plex Sans', 'Noto Sans Sinhala', sans-serif;
-  background: var(--bg);
-  color: var(--text);
-  line-height: 1.7;
-  -webkit-font-smoothing: antialiased;
-}
-.si { font-family: 'Noto Sans Sinhala', 'IBM Plex Sans', sans-serif; }
-
-/* Header */
-header {
-  position: sticky; top: 0; z-index: 10;
-  background: rgba(26,26,36,0.92); backdrop-filter: blur(14px);
-  border-bottom: 1px solid var(--border);
-}
-.header-inner {
-  max-width: 1000px; margin: 0 auto; padding: 14px 24px;
-  display: flex; align-items: center; justify-content: space-between; gap: 16px;
-}
-.logo { font-family: 'Space Grotesk', sans-serif; font-weight: 800; font-size: 1.25rem; color: var(--text); text-decoration: none; letter-spacing: -0.02em; }
-.logo em { color: var(--cyan); font-style: normal; }
-.back { color: var(--muted); text-decoration: none; font-size: 0.85rem; padding: 8px 14px; border: 1px solid var(--border); border-radius: 8px; transition: all .18s; }
-.back:hover { color: var(--text); border-color: var(--accent); }
-
-/* Hero */
-.hero { max-width: 1000px; margin: 0 auto; padding: 64px 24px 24px; }
-.eyebrow { font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem; letter-spacing: .12em; text-transform: uppercase; color: var(--cyan); margin-bottom: 14px; }
-.hero h1 { font-family: 'Space Grotesk', sans-serif; font-size: clamp(2rem, 5vw, 3rem); line-height: 1.1; letter-spacing: -0.03em; }
-.hero h1 span { color: var(--accent); }
-.hero p.si { color: var(--muted); margin-top: 10px; font-size: 1.05rem; }
-
-/* TOC */
-.toc { max-width: 1000px; margin: 28px auto 0; padding: 0 24px; display: flex; flex-wrap: wrap; gap: 10px; }
-.toc a {
-  font-size: 0.8rem; color: var(--muted); text-decoration: none;
-  padding: 7px 14px; border-radius: 999px; background: var(--surface-2); border: 1px solid var(--border);
-  transition: all .18s;
-}
-.toc a:hover { color: var(--text); border-color: var(--accent); }
-
-/* Sections */
-main { max-width: 1000px; margin: 0 auto; padding: 24px 24px 72px; }
-section {
-  margin-top: 28px; background: var(--surface); border: 1px solid var(--border);
-  border-radius: 16px; overflow: hidden;
-}
-.sec-head {
-  display: flex; align-items: center; gap: 16px; padding: 22px 28px;
-  background: var(--surface-2); border-bottom: 1px solid var(--border-strong);
-}
-.num {
-  flex-shrink: 0; width: 38px; height: 38px; border-radius: 10px;
-  display: flex; align-items: center; justify-content: center;
-  font-family: 'IBM Plex Mono', monospace; font-weight: 600; font-size: .9rem;
-  background: linear-gradient(135deg, var(--accent), #7928ca); color: #fff;
-}
-.sec-head h2 { font-family: 'Space Grotesk', sans-serif; font-size: 1.25rem; line-height: 1.2; }
-.sec-head .si-title { display: block; font-size: .92rem; font-weight: 500; color: var(--cyan); margin-top: 3px; font-family: 'Noto Sans Sinhala', sans-serif; }
-
-.block { padding: 24px 28px; }
-.block + .block { border-top: 1px dashed var(--border); }
-.lang {
-  display: inline-block; font-family: 'IBM Plex Mono', monospace; font-size: .66rem; font-weight: 600;
-  letter-spacing: .1em; padding: 3px 9px; border-radius: 5px; margin-bottom: 14px;
-}
-.lang.en { background: rgba(255,0,127,0.12); color: var(--accent); }
-.lang.sn { background: rgba(0,240,255,0.1); color: var(--cyan); }
-.block p { color: var(--muted); font-size: .95rem; }
-.block.sinhala p, .block.sinhala li { font-family: 'Noto Sans Sinhala', sans-serif; line-height: 1.95; }
-.block ul { list-style: none; display: flex; flex-direction: column; gap: 14px; }
-.block li { position: relative; padding-left: 22px; color: var(--muted); font-size: .95rem; }
-.block li::before {
-  content: ''; position: absolute; left: 0; top: .72em; width: 7px; height: 7px;
-  border-radius: 2px; background: var(--accent);
-}
-.block.sinhala li::before { background: var(--cyan); top: .9em; }
-.block li strong { color: var(--text); font-weight: 600; }
-.block a { color: var(--cyan); text-decoration: none; }
-.block a:hover { text-decoration: underline; }
-
-/* Footer */
-footer { background: var(--surface-2); border-top: 1px solid var(--border-strong); padding: 36px 24px 28px; color: var(--muted); }
-.footer-inner { max-width: 1000px; margin: 0 auto; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 14px; font-size: .8rem; align-items: center; }
-.footer-inner .logo { font-size: 1.05rem; }
-
-@media (max-width: 600px) {
-  .hero { padding-top: 40px; }
-  .sec-head, .block { padding-left: 18px; padding-right: 18px; }
-  .sec-head h2 { font-size: 1.08rem; }
-}
+:root{--bg:#040716;--card:#080d28;--cy:#00e5ff;--bl:#2f6bff;--pu:#a53dff;--mg:#ff2bd6;--tx:#eaf0ff;--mu:#9fb0d8;--ln:rgba(0,229,255,.28)}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:radial-gradient(900px 500px at 85% -5%,rgba(165,61,255,.22),transparent 60%),radial-gradient(800px 500px at 0 0,rgba(0,229,255,.14),transparent 60%),var(--bg);color:var(--tx);font:400 15px/1.6 'IBM Plex Sans',system-ui,sans-serif;min-height:100vh}
+a{color:var(--cy);text-decoration:none}
+.si{font-family:'Noto Sans Sinhala','IBM Plex Sans',sans-serif}
+.top{display:flex;align-items:center;justify-content:space-between;padding:12px clamp(14px,4vw,40px);border-bottom:1px solid var(--ln);background:rgba(4,7,22,.9);position:sticky;top:0;z-index:5;backdrop-filter:blur(8px)}
+.brand{display:flex;align-items:center;gap:10px;color:#fff}
+.brand img{width:44px;height:44px;object-fit:contain}
+.brand b{font:700 1.45rem 'Space Grotesk',sans-serif;letter-spacing:-.01em}.brand b em{font-style:normal;color:var(--mg)}
+.brand small{display:block;font-size:.68rem;color:var(--cy);letter-spacing:.06em}
+.back{border:1.5px solid var(--cy);border-radius:10px;padding:8px 16px;font-weight:600;font-size:.88rem}
+.back:hover{background:rgba(0,229,255,.1)}
+.hero{padding:34px clamp(14px,4vw,40px) 8px;max-width:1100px;margin:0 auto}
+.hero h1{font:700 clamp(2rem,5vw,3rem)/1.1 'Space Grotesk',sans-serif}
+.hero h1 em{font-style:normal;background:linear-gradient(90deg,var(--cy),var(--bl),var(--mg));-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero p{color:var(--mu);margin-top:6px}
+.tabs{max-width:1100px;margin:18px auto 0;padding:0 clamp(14px,4vw,40px);display:flex;gap:10px;flex-wrap:wrap}
+.tabs a{display:flex;align-items:center;gap:8px;padding:10px 18px;border:1px solid var(--ln);border-radius:999px;color:var(--tx);font-weight:500;font-size:.9rem;background:rgba(8,13,40,.8)}
+.tabs a svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.tabs a.on{background:linear-gradient(90deg,var(--mg),var(--pu));border-color:transparent;color:#fff;box-shadow:0 0 18px rgba(255,43,214,.4)}
+main{max-width:1100px;margin:18px auto 50px;padding:0 clamp(14px,4vw,40px);display:grid;gap:16px}
+section{border:1px solid var(--ln);border-radius:14px;background:linear-gradient(180deg,rgba(10,16,52,.7),rgba(6,10,34,.85));padding:20px 22px;display:grid;grid-template-columns:54px 1fr;gap:16px;scroll-margin-top:90px}
+section.hide{display:none}
+.no{width:50px;height:50px;border-radius:12px;background:linear-gradient(135deg,var(--mg),var(--pu));display:grid;place-items:center;font:700 1.2rem 'Space Grotesk',sans-serif}
+h2{font:700 1.3rem 'Space Grotesk',sans-serif}
+h2 small{display:block;font:500 .85rem 'Noto Sans Sinhala',sans-serif;color:var(--cy)}
+ul{list-style:none;margin-top:10px;display:grid;gap:8px}
+li{position:relative;padding-left:18px;font-size:.9rem}
+li::before{content:'';position:absolute;left:0;top:.6em;width:7px;height:7px;border-radius:50%;background:var(--cy);box-shadow:0 0 8px var(--cy)}
+ul.si li::before{background:var(--mg);box-shadow:0 0 8px var(--mg)}
+li b{color:#fff}
+hr{border:0;border-top:1px solid var(--ln);margin:12px 0 0}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+@media(max-width:760px){section{grid-template-columns:1fr}.two{grid-template-columns:1fr}}
+footer{border-top:1px solid var(--ln);padding:22px clamp(14px,4vw,40px);display:flex;flex-wrap:wrap;gap:14px;justify-content:space-between;align-items:center;color:var(--mu);font-size:.85rem;background:rgba(4,7,22,.9)}
+footer .pay{display:flex;gap:8px;align-items:center}
+footer .pay i{font:700 .7rem 'Space Grotesk';font-style:normal;padding:5px 9px;border-radius:5px;background:#1a3fb5;color:#fff}
+footer .pay i.k{background:#6d1ee0}footer .pay i.e{background:#ffc21a;color:#222}footer .pay i.m{background:#e53b3b}
+:focus-visible{outline:2px solid var(--cy);outline-offset:2px}
 </style>
 </head>
 <body>
-
-<header>
-  <div class="header-inner">
-    <a href="index.html" class="logo" data-home>Smart<em>Part</em></a>
-    <a href="index.html" class="back" data-home>← Back to Store</a>
-  </div>
+<header class="top">
+  <a class="brand" href="index.html"><img src="assets/logo-s.png" alt=""><span><b>Smart<em>Parts</em></b><small>Tech &amp; Gaming Accessories</small></span></a>
+  <a class="back" href="index.html">&larr; Back to Store</a>
 </header>
-
 <div class="hero">
-  <div class="eyebrow">Store Policies · ප්‍රතිපත්ති</div>
-  <h1>Smart<span>Part</span> Policies</h1>
-  <p class="si">SmartPart ප්‍රතිපත්ති සහ නියමයන්</p>
+  <h1>SmartParts <em>Policies</em></h1>
+  <p class="si">SmartParts ප්‍රතිපත්ති සහ නිවේදන</p>
 </div>
-
-<nav class="toc" aria-label="Sections">
-  <a href="#about">About · හඳුන්වාදීම</a>
-  <a href="#terms">Terms · නියම</a>
-  <a href="#privacy">Privacy · රහස්‍යතාව</a>
-  <a href="#returns">Returns · ආපසු ලබාදීම</a>
-  <a href="#contact">Contact · සම්බන්ධතා</a>
+<nav class="tabs" id="tabs" aria-label="Policy sections">
+  <a href="#about" data-t="about"><svg viewBox="0 0 24 24"><path d="M3 11 12 3l9 8v9H3z"/></svg>About</a>
+  <a href="#terms" data-t="terms"><svg viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H6z"/><path d="M9 12h7M9 16h7"/></svg>Terms &amp; Conditions</a>
+  <a href="#privacy" data-t="privacy"><svg viewBox="0 0 24 24"><path d="M12 2 4 5v6c0 5 3.4 9.3 8 11 4.6-1.7 8-6 8-11V5z"/></svg>Privacy Policy</a>
+  <a href="#returns" data-t="returns"><svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>Return &amp; Refund</a>
+  <a href="#contact" data-t="contact"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>Contact</a>
 </nav>
-
 <main>
+<section id="about" data-t="about"><div class="no">00</div><div>
+  <h2>Store Description<small>සැප්පුව පිළිබඳ විස්තරය</small></h2>
+  <ul><li>SmartParts is your trusted destination for high-quality computer hardware, accessories, and technical solutions. We are committed to delivering reliable products and exceptional service to all our customers.</li></ul>
+  <hr><ul class="si"><li>SmartParts යනු උසස් තත්ත්වයේ පරිගණක දෑ, උපාංග සහ තාක්ෂණික විසඳුම් සඳහා ඔබට විශ්වාසවන්ත ගමනාන්තයයි. අපගේ අරමුණ වන්නේ ඔබට විශ්වාසදායක නිෂ්පාදන සහ විශිෂ්ට සේවාවක් ලබා දීමයි.</li></ul>
+</div></section>
 
-  <!-- Store Description -->
-  <section id="about">
-    <div class="sec-head">
-      <div class="num">00</div>
-      <h2>Store Description<span class="si-title">හඳුන්වාදීම</span></h2>
-    </div>
-    <div class="block">
-      <span class="lang en">ENGLISH</span>
-      <p>SmartPart is your trusted destination for high-quality computer hardware, accessories, and technical solutions. We are committed to delivering reliable products and exceptional service to all our customers.</p>
-    </div>
-    <div class="block sinhala">
-      <span class="lang sn">සිංහල</span>
-      <p>SmartPart යනු උසස් තත්වයේ පරිගණක උපාංග, ඇක්සසරිස් සහ නවීන තාක්ෂණික විසඳුම් විශ්වාසනීය ලෙස සහ සුදුසුම මිලට ලබාගත හැකි ප්‍රමුඛ පෙළේ ආයතනයකි. අපගේ පාරිභෝගිකයන්ට උසස් සේවාවක් ලබා දීමට අප නිරන්තරයෙන් කැපවී සිටිමු.</p>
-    </div>
-  </section>
+<section id="terms" data-t="terms"><div class="no">01</div><div>
+  <h2>Terms &amp; Conditions<small>නියමයන් සහ කොන්දේසි</small></h2>
+  <ul>
+    <li><b>Orders &amp; Pricing:</b> All prices for computer hardware and accessories listed on SmartParts are subject to change based on stock availability.</li>
+    <li><b>Warranty:</b> Hardware items purchased come with respective manufacturer or store warranties. Physical damage, liquid damage, or power surges will void the warranty.</li>
+    <li><b>Payments:</b> Payments must be completed securely through approved payment methods provided on the platform. Any processing charge will be shown before you pay.</li>
+    <li><b>Acceptance &amp; Liability:</b> By using SmartParts you agree to these terms. We make every effort to keep product information accurate but cannot guarantee it is error-free, and we may cancel or refuse an order at our discretion. Delivery times are estimates.</li>
+  </ul><hr>
+  <ul class="si">
+    <li><b>ඇණවුම් සහ මිල:</b> SmartParts වෙබ් අඩවියේ දක්වා ඇති සියලු මිල ගණන්, තොග පවතින බව අනුව වෙනස් විය හැකිය.</li>
+    <li><b>වගකීම්:</b> දෘඩාංග අයිතම නිෂ්පාදකයාගේ හෝ වෙළඳසැලේ වගකීම් යටතේ පවතින අතර, භෞතික හානි, ද්‍රව හානි හෝ බල උච්චාවචන (power surges) වගකීම අවලංගු කරයි.</li>
+    <li><b>ගෙවීම්:</b> ගෙවීම් අනුමත ගෙවීම් ක්‍රම මගින් ආරක්ෂිතව සිදු කළ යුතු අතර, ගෙවීම් ක්‍රියාකාරී ගාස්තු පෙර පෙන්වනු ලැබේ.</li>
+  </ul>
+</div></section>
 
-  <!-- Terms -->
-  <section id="terms">
-    <div class="sec-head">
-      <div class="num">01</div>
-      <h2>Terms &amp; Conditions<span class="si-title">භාවිත නියම සහ කොන්දේසි</span></h2>
-    </div>
-    <div class="block">
-      <span class="lang en">ENGLISH</span>
-      <ul>
-        <li><strong>Orders &amp; Pricing:</strong> All prices for computer hardware and accessories listed on SmartPart are subject to change based on stock availability.</li>
-        <li><strong>Warranty:</strong> Hardware items purchased come with respective manufacturer or store warranties. Physical damage, liquid damage, or power surges will void the warranty.</li>
-        <li><strong>Payments:</strong> Payments must be completed securely through approved payment methods provided on the platform. A 3% processing charge applies to all orders and is shown in your cart and at checkout before you pay.</li>
-      </ul>
-    </div>
-    <div class="block sinhala">
-      <span class="lang sn">සිංහල</span>
-      <ul>
-        <li><strong>ඇණවුම් සහ මිල ගණන්:</strong> SmartPart හරහා ඇණවුම් කරන සියලුම පරිගණක උපාංග සහ භාණ්ඩ සඳහා දැක්වෙන මිල ගණන් අවසාන වන අතර, තොග පවතින පරිදි මිල වෙනස් වීමට ඉඩ ඇත.</li>
-        <li><strong>වගකීම් කාලය:</strong> අපෙන් මිලදී ගන්නා හාඩ්වෙයාර් අයිතම සඳහා අදාළ නිෂ්පාදකයාගේ හෝ ආයතනයේ වගකීම් කාලය හිමිවේ. භෞතික හානි, දියර කාන්දු වීම් (Liquid damage) හෝ විදුලි සැමරුම් (Power surges) නිසා සිදුවන හානි සඳහා වගකීම් ආවරණය නොකෙරේ.</li>
-        <li><strong>ගෙවීම් ක්‍රම:</strong> නියමිත නිල ගෙවීම් ක්‍රම හරහා පමණක් මුදල් ගෙවීම සිදුකළ යුතුය. සියලුම ඇණවුම් සඳහා 3%ක සැකසුම් ගාස්තුවක් (Processing Charge) අදාළ වන අතර, එය ගෙවීමට පෙර කරත්තයේ සහ checkout එකේ පෙන්වනු ලැබේ.</li>
-      </ul>
-    </div>
-  </section>
+<section id="privacy" data-t="privacy"><div class="no">02</div><div>
+  <h2>Privacy Policy<small>රහස්‍යතා ප්‍රතිපත්තිය</small></h2>
+  <ul>
+    <li><b>Information We Collect:</b> Name, phone number, email, delivery address, order details, and payment information. Card details are never stored by us; online payments are handled by the payment provider.</li>
+    <li><b>Cookies &amp; Analytics:</b> We use cookies and similar technologies to keep your cart and preferences and understand site traffic.</li>
+    <li><b>How We Use Your Data:</b> To process orders, confirm payments, provide support, and send order updates by email, SMS or WhatsApp. Marketing messages are sent only if you agree.</li>
+    <li><b>Sharing with Courier &amp; Providers:</b> We share only the details needed to complete your order. We do not sell or rent your personal information.</li>
+    <li><b>Data Security:</b> Data is protected with HTTPS and access is limited to authorized staff.</li>
+    <li><b>Your Rights:</b> You may request to view, correct, or delete personal data, subject to legal requirements.</li>
+    <li><b>Contact:</b> <a href="mailto:ishaninduwara36@gmail.com">ishaninduwara36@gmail.com</a> &middot; SmartParts</li>
+  </ul><hr>
+  <ul class="si">
+    <li><b>දත්ත එකතු කිරීම:</b> නම, දුරකථන අංකය, ඊමේල්, ලිපිනය, ඇණවුම් විස්තර සහ ගෙවීම් තොරතුරු. කාඩ්පත් විස්තර අප විසින් ගබඩා නොකරයි.</li>
+    <li><b>කුකීස් සහ විශ්ලේෂණ:</b> ඔබේ කරත්තය සහ මනාපයන් මතක තබා ගැනීමට කුකීස් භාවිතා කරයි.</li>
+    <li><b>දත්ත භාවිතය:</b> ඇණවුම් සැකසීම, ගෙවීම් තහවුරු කිරීම, සහාය සහ යාවත්කාලීන පණිවිඩ.</li>
+    <li><b>දත්ත ආරක්ෂාව:</b> HTTPS මගින් ආරක්ෂා කර ඇති අතර, බලයලත් කාර්ය මණ්ඩලයට පමණක් ප්‍රවේශය ඇත.</li>
+    <li><b>ඔබේ අයිතිවාසිකම්:</b> ඔබේ දත්ත දැකීම, නිවැරදි කිරීම හෝ මකා දැමීම සඳහා ඉල්ලුම් කළ හැකිය.</li>
+  </ul>
+</div></section>
 
-  <!-- Privacy -->
-  <section id="privacy">
-    <div class="sec-head">
-      <div class="num">02</div>
-      <h2>Privacy Policy<span class="si-title">රහස්‍යතා ප්‍රතිපත්තිය</span></h2>
-    </div>
-    <div class="block">
-      <span class="lang en">ENGLISH</span>
-      <ul>
-        <li><strong>Information We Collect:</strong> Name, phone number, email, delivery address, order details, and payment information. Card details are never stored by us; online payments are handled by the payment provider and bank-transfer receipts you upload are used only to verify your payment.</li>
-        <li><strong>Cookies &amp; Analytics:</strong> We use cookies and similar technologies to keep your cart and preferences and to understand site traffic. You can disable cookies in your browser, but some features may not work.</li>
-        <li><strong>How We Use Your Data:</strong> To process and deliver orders, confirm payments, provide support, and send order updates by email, SMS or WhatsApp. Marketing messages are sent only if you agree.</li>
-        <li><strong>Sharing with Courier &amp; Providers:</strong> We share only the name, phone number, address and order details needed with courier companies and payment/email/messaging providers to complete your order. We never sell your data.</li>
-        <li><strong>Data Security:</strong> Data is stored on secured servers, transmitted over HTTPS, and access is limited to authorised staff.</li>
-        <li><strong>Your Rights:</strong> You may request to view, correct or delete your personal data by contacting us. Some records may be kept where required by law or for accounting.</li>
-        <li><strong>Contact:</strong> [privacy@yourdomain] &middot; [Legal business name] &middot; Last updated: [DD Month YYYY]</li>
-      </ul>
-    </div>
-    <div class="block sinhala">
-      <span class="lang sn">සිංහල</span>
-      <ul>
-        <li><strong>එකතු කරන තොරතුරු:</strong> නම, දුරකථන අංකය, ඊමේල්, ඩිලිවරි ලිපිනය, ඇණවුම් විස්තර සහ ගෙවීම් තොරතුරු. කාඩ්පත් විස්තර අපි ගබඩා නොකරයි; බැංකු මාරු රිසිට්පත් භාවිතා කරන්නේ ගෙවීම තහවුරු කිරීමට පමණි.</li>
-        <li><strong>Cookies සහ Analytics:</strong> කරත්තය සහ අභිරුචි මතක තබා ගැනීමට සහ අඩවි ගමනාගමනය තේරුම් ගැනීමට cookies භාවිතා කරයි. ඒවා browser එකෙන් අක්‍රිය කළ හැකි නමුත් සමහර විශේෂාංග වැඩ නොකරයි.</li>
-        <li><strong>දත්ත භාවිතය:</strong> ඇණවුම් සැකසීමට, ඩිලිවරි කිරීමට, ගෙවීම් තහවුරු කිරීමට, සහාය ලබාදීමට සහ ඊමේල්/SMS/WhatsApp මගින් ඇණවුම් යාවත්කාලීන යැවීමට. අලෙවිකරණ පණිවිඩ යවන්නේ ඔබ එකඟ වුවහොත් පමණි.</li>
-        <li><strong>Courier සහ සේවා සපයන්නන් සමඟ බෙදාගැනීම:</strong> ඇණවුම සම්පූර්ණ කිරීමට අවශ්‍ය නම, දුරකථන අංකය, ලිපිනය සහ ඇණවුම් විස්තර පමණක් courier සමාගම් සහ ගෙවීම්/ඊමේල්/පණිවිඩ සේවා සපයන්නන් සමඟ බෙදාගනී. ඔබේ දත්ත කිසිවිටක විකුණන්නේ නැත.</li>
-        <li><strong>දත්ත ආරක්ෂාව:</strong> දත්ත ආරක්ෂිත සේවාදායකවල ගබඩා කර HTTPS හරහා හුවමාරු වන අතර, ප්‍රවේශය අවසර ලත් කාර්ය මණ්ඩලයට පමණි.</li>
-        <li><strong>ඔබේ අයිතිවාසිකම්:</strong> ඔබේ පුද්ගලික දත්ත බැලීමට, නිවැරදි කිරීමට හෝ මකා දැමීමට අප අමතා ඉල්ලිය හැක. නීතියෙන් හෝ ගිණුම්කරණයට අවශ්‍ය සටහන් සමහරක් තබා ගත හැක.</li>
-        <li><strong>සම්බන්ධ වන්න:</strong> [privacy@yourdomain] &middot; [Legal business name] &middot; අවසන් යාවත්කාලීන: [DD Month YYYY]</li>
-      </ul>
-    </div>
-  </section>
+<section id="returns" data-t="returns"><div class="no">03</div><div>
+  <h2>Return &amp; Refund Policy<small>ආපසු යැවීම සහ මුදල් ආපසු ලබාදීමේ ප්‍රතිපත්තිය</small></h2>
+  <ul>
+    <li><b>Return Window:</b> Request a return within 3 days of receiving a defective item.</li>
+    <li><b>Conditions:</b> Item must be unused, in original packaging, and have warranty seals intact.</li>
+    <li><b>Refunds:</b> Approved refunds are processed to your bank account within standard processing days.</li>
+  </ul><hr>
+  <ul class="si">
+    <li><b>ආපසු යැවීමේ කාලය:</b> දෝෂ සහිත භාණ්ඩයක් ලැබුණු දින සිට දින 3ක් ඇතුලත ආපසු ඉල්ලන්න.</li>
+    <li><b>කොන්දේසි:</b> භාණ්ඩය භාවිතා නොකළ, මුල් ඇසුරුම්වල, සහ වගකීම් මුද්‍රා ඉතිරිව තිබිය යුතුය.</li>
+    <li><b>මුදල් ආපසු:</b> අනුමත ආපසු ගෙවීම්, බැංකු ගිණුමට සාමාන්‍ය ප්‍රතිසැකසුම් දින තුළ සිදු කරනු ලැබේ.</li>
+  </ul>
+</div></section>
 
-  <!-- Returns -->
-  <section id="returns">
-    <div class="sec-head">
-      <div class="num">03</div>
-      <h2>Return &amp; Refund Policy<span class="si-title">භාණ්ඩ ආපසු ලබාදීම සහ මුදල් ප්‍රතිපූරණය</span></h2>
-    </div>
-    <div class="block">
-      <span class="lang en">ENGLISH</span>
-      <ul>
-        <li><strong>Return Window:</strong> Returns or replacements must be requested within 3 days of receiving the item if any defect is found.</li>
-        <li><strong>Conditions:</strong> Items must be in their original packaging, unused, and with all warranty seals intact.</li>
-        <li><strong>Refunds:</strong> Once the returned item is inspected and verified, refunds will be processed to your bank account within standard processing days.</li>
-      </ul>
-    </div>
-    <div class="block sinhala">
-      <span class="lang sn">සිංහල</span>
-      <ul>
-        <li><strong>මාරු කිරීමේ කාලය:</strong> භාණ්ඩය ලැබී දින 3ක් ඇතුළත දෝෂයක් ඇත්නම් පමණක් එය දැනුම් දිය යුතුය.</li>
-        <li><strong>කොන්දේසි:</strong> භාණ්ඩය මුල් පැකට් සහ ස්ටිකර් සමඟ කිසිදු භෞතික හානියකින් තොරව තිබිය යුතුය.</li>
-        <li><strong>මුදල් ආපසු ගෙවීම්:</strong> දෝෂය පරීක්ෂා කර බලා තහවුරු කළ පසු, නියමිත දින කිහිපයක් ඇතුළත අදාළ බැංකු ගිණුම හරහා මුදල් ප්‍රතිපූරණය (Refund) කරනු ලැබේ.</li>
-      </ul>
-    </div>
-  </section>
-
-  <!-- Contact -->
-  <section id="contact">
-    <div class="sec-head">
-      <div class="num">04</div>
-      <h2>Contact Info<span class="si-title">සම්බන්ධතා තොරතුරු</span></h2>
-    </div>
-    <div class="block">
-      <span class="lang en">ENGLISH</span>
-      <ul>
-        <li><strong>Business Name:</strong> SmartPart</li>
-        <li><strong>Phone:</strong> <a href="tel:+94767396487">0767396487</a></li>
-        <li><strong>Email:</strong> <a href="mailto:ishaninduwara36@gmail.com">ishaninduwara36@gmail.com</a></li>
-      </ul>
-    </div>
-    <div class="block sinhala">
-      <span class="lang sn">සිංහල</span>
-      <ul>
-        <li><strong>ව්‍යාපාරයේ නම:</strong> SmartPart</li>
-        <li><strong>දුරකථන අංකය:</strong> <a href="tel:+94767396487">0767396487</a></li>
-        <li><strong>ඊමේල් ලිපිනය:</strong> <a href="mailto:ishaninduwara36@gmail.com">ishaninduwara36@gmail.com</a></li>
-      </ul>
-    </div>
-  </section>
-
+<section id="contact" data-t="contact"><div class="no">04</div><div>
+  <h2>Contact Info<small>සම්බන්ධතා තොරතුරු</small></h2>
+  <div class="two"><ul>
+    <li><b>Business Name:</b> SmartParts</li>
+    <li><b>Phone:</b> <a href="tel:+94767396487">0767396487</a></li>
+    <li><b>Email:</b> <a href="mailto:ishaninduwara36@gmail.com">ishaninduwara36@gmail.com</a></li>
+    <li><b>WhatsApp:</b> <a href="https://wa.me/94767396487" target="_blank" rel="noopener">Chat with us</a></li>
+  </ul><ul class="si">
+    <li><b>සමාගමේ නම:</b> SmartParts</li>
+    <li><b>දුරකථන අංකය:</b> <a href="tel:+94767396487">0767396487</a></li>
+    <li><b>ඊමේල් ලිපිනය:</b> <a href="mailto:ishaninduwara36@gmail.com">ishaninduwara36@gmail.com</a></li>
+  </ul></div>
+</div></section>
 </main>
-
 <footer>
-  <div class="footer-inner">
-    <a href="index.html" class="logo" data-home>Smart<em>Part</em></a>
-    <div>© 2026 SmartPart. All rights reserved.</div>
-    <div>🇱🇰 Made in Sri Lanka</div>
-  </div>
+  <span>&copy; 2026 SmartParts. All rights reserved.</span>
+  <span class="pay">We Accept <i>VISA</i><i class="m">MC</i><i class="k">KOKO</i><i class="e">eZ Cash</i><i>Bank Transfer</i></span>
 </footer>
-
 <script>
-/* Back to Store: return to the page the visitor came from; otherwise open the homepage.
-   (Plain href="index.html" is kept as the no-JS fallback.) */
-document.querySelectorAll('a[data-home]').forEach(function (a) {
-  a.addEventListener('click', function (e) {
-    e.preventDefault();
-    var ref = document.referrer || '';
-    var sameSite = ref && ref.indexOf(location.origin) === 0 && ref.indexOf('policy.html') === -1;
-    if (sameSite) { location.href = ref.split('#')[0]; return; }
-    // Opened from the store in a new tab: just close this tab and the store is right there.
-    if (window.opener && !window.opener.closed) {
-      window.close();
-      setTimeout(function () { if (!window.closed) goHomeFallback(); }, 200);
-      return;
-    }
-    goHomeFallback();
-  });
-});
-function goHomeFallback() {
-  if (window.history.length > 1) { history.back(); }
-  else { location.href = 'index.html'; }
-}
+(function(){
+  var secs=[].slice.call(document.querySelectorAll('main section')),tabs=[].slice.call(document.querySelectorAll('#tabs a'));
+  function show(){
+    var h=(location.hash||'#about').slice(1);
+    if(!document.getElementById(h))h='about';
+        tabs.forEach(function(a){a.classList.toggle('on',a.dataset.t===h)});
+    document.title='SmartParts Policies — '+(tabs.filter(function(a){return a.dataset.t===h})[0]||{textContent:''}).textContent;
+  }
+  window.addEventListener('hashchange',show);show();
+  if(location.hash&&document.getElementById(location.hash.slice(1)))setTimeout(function(){document.getElementById(location.hash.slice(1)).scrollIntoView()},50);
+})();
 </script>
 </body>
 </html>

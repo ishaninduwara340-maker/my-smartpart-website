@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>My Profile | SmartParts</title>
+<meta name="theme-color" content="#040716">
+<link rel="icon" href="assets/logo-s.png">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="sp-pages.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+.ph{display:flex;align-items:center;justify-content:space-between;gap:20px;margin-bottom:22px;flex-wrap:wrap}
+.ph-l{display:flex;align-items:center;gap:16px}
+.ph-l .ico{width:58px;height:58px;border-radius:50%;border:2px solid var(--cyan);display:grid;place-items:center;box-shadow:0 0 16px rgba(0,229,255,.35)}
+.ph-l .ico svg{width:30px;height:30px;stroke:var(--cyan);fill:none;stroke-width:1.8}
+.ph h1{font:800 2.1rem/1.1 'Space Grotesk',sans-serif}.ph p{color:var(--muted);margin-top:3px}
+.welc{display:flex;align-items:center;gap:16px;padding:12px 20px;border-radius:14px;border:1.5px solid #5a35ff;background:rgba(14,12,56,.7)}
+.welc small{color:#cfd8ff;display:block}.welc b{font:700 1.05rem 'Space Grotesk',sans-serif}
+.cols{display:grid;grid-template-columns:250px minmax(0,1fr) 310px;gap:22px;align-items:start}
+.stack{display:flex;flex-direction:column;gap:22px}
+/* sidebar */
+.side{padding:12px}
+.side a{display:flex;align-items:center;gap:14px;padding:13px 16px;border-radius:10px;color:#eaf0ff;font-size:.96rem;margin-bottom:4px;border:1px solid transparent}
+.side a svg{width:23px;height:23px;stroke:var(--cyan);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+.side a:hover{background:rgba(47,107,255,.14)}
+.side a.on{background:linear-gradient(90deg,#1f6bff,#7a3dff);border-color:#9d7bff;font-weight:600;box-shadow:0 0 18px rgba(122,61,255,.45)}
+.side a.on svg{stroke:#fff}
+.side .cnt{margin-left:auto;min-width:22px;height:22px;border-radius:11px;background:var(--pink);color:#fff;font:700 .72rem/22px sans-serif;text-align:center;padding:0 6px}
+.side .cnt.z{background:#6a2cff}
+.promo{padding:0;overflow:hidden}
+.promo img{width:100%;height:132px;object-fit:cover;display:block;-webkit-mask-image:linear-gradient(#000 70%,transparent);mask-image:linear-gradient(#000 70%,transparent)}
+.promo div{padding:0 18px 20px;margin-top:-6px}
+.promo h3{font:800 1.35rem/1.15 'Space Grotesk',sans-serif}.promo p{font-size:.78rem;color:#cfd8ff;margin:6px 0 14px}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:10px 20px;border-radius:9px;border:0;cursor:pointer;color:#fff;font:600 .9rem 'IBM Plex Sans',sans-serif;background:linear-gradient(90deg,#00b7ff,#4a5cff)}
+.btn.ghost{background:transparent;border:1.5px solid var(--cyan);color:#dff9ff;padding:8px 16px;font-size:.85rem}
+.btn:hover{filter:brightness(1.12)}
+.pad{text-align:center;padding:16px 12px}.pad img{width:150px;height:92px;object-fit:cover;border-radius:10px}
+.pad b{display:block;margin-top:8px;font:700 1.05rem 'Space Grotesk',sans-serif}.pad small{color:var(--muted)}
+/* profile card */
+.pcard{display:grid;grid-template-columns:auto 1fr auto;gap:22px;align-items:center}
+.av{position:relative;width:104px;height:104px;border-radius:50%;padding:4px;background:linear-gradient(135deg,#00e5ff,#8b3dff,#ff2bd6)}
+.av>div{width:100%;height:100%;border-radius:50%;background:#071033 center/cover no-repeat;display:grid;place-items:center;overflow:hidden}
+.av svg{width:54px;height:54px;stroke:var(--cyan);fill:none;stroke-width:1.6}
+.av label{position:absolute;right:-2px;bottom:2px;width:32px;height:32px;border-radius:50%;background:#1a2f8f;border:2px solid var(--cyan);display:grid;place-items:center;cursor:pointer}
+.av label svg{width:16px;height:16px;stroke:#fff;stroke-width:2}
+.pcard h2{font:700 1.3rem 'Space Grotesk',sans-serif}.pcard .em{color:var(--cyan);font-size:.95rem;word-break:break-all}
+.badge{display:inline-flex;align-items:center;gap:8px;margin-top:10px;padding:5px 14px;border-radius:9px;border:1.5px solid #ffc928;color:#ffd54a;font-size:.84rem;background:rgba(255,201,40,.06)}
+.badge svg{width:18px;height:18px;fill:#ffc928}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);margin-top:20px;padding-top:16px;border-top:1px solid var(--line);text-align:center}
+.stats>div+div{border-left:1px solid var(--line)}.stats b{display:block;font:700 1.25rem 'Space Grotesk',sans-serif}.stats small{color:var(--muted);font-size:.78rem}
+.sh{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.sh svg.i{width:26px;height:26px;stroke:var(--cyan);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.sh h3{font:700 1.15rem 'Space Grotesk',sans-serif}.sh .ed{margin-left:auto;color:var(--cyan);font-size:.85rem;background:none;border:0;cursor:pointer;font-family:inherit}
+.row{display:flex;align-items:flex-start;gap:14px;padding:11px 0;border-top:1px solid rgba(120,140,220,.18)}
+.row svg{width:24px;height:24px;stroke:var(--cyan);fill:none;stroke-width:1.7;margin-top:2px;flex-shrink:0}
+.row small{display:block;color:var(--muted);font-size:.78rem}.row span{font-size:.96rem;word-break:break-word}
+.eye{margin-left:auto;background:none;border:0;cursor:pointer}.eye svg{margin:0}
+/* orders */
+table{width:100%;border-collapse:collapse;font-size:.88rem}
+th{color:#cbd6ff;font-weight:500;text-align:left;padding:10px 8px;border-bottom:1px solid var(--line)}
+td{padding:12px 8px;border-bottom:1px solid rgba(120,140,220,.16);vertical-align:middle}
+.thumb{width:44px;height:44px;border-radius:8px;background:#fff linear-gradient(#e9ecf5,#fff);display:inline-grid;place-items:center;vertical-align:middle;margin-right:10px}
+.thumb svg{width:24px;height:24px;stroke:#3a4a8a;fill:none;stroke-width:1.6}
+.st{display:inline-block;padding:5px 16px;border-radius:999px;font-size:.8rem;border:1px solid}
+.st.Delivered{color:#6dffa1;border-color:#2dbd6e;background:rgba(45,189,110,.12)}
+.st.Processing{color:#6ec4ff;border-color:#2f8bff;background:rgba(47,139,255,.14)}
+.st.Shipped{color:#c9a0ff;border-color:#8b3dff;background:rgba(139,61,255,.16)}
+.st.Pending{color:#ffd66e;border-color:#c99a1c;background:rgba(201,154,28,.13)}
+.st.Cancelled{color:#ff8f9f;border-color:#d03a54;background:rgba(208,58,84,.14)}
+.empty{text-align:center;color:var(--muted);padding:26px 10px}
+/* quick settings / security */
+.two{display:grid;grid-template-columns:1.25fr 1fr;gap:22px}
+.qs{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.qs a{display:flex;align-items:center;gap:12px;padding:16px;border-radius:12px;color:#fff;border:1.5px solid var(--blue);background:rgba(10,22,70,.55);cursor:pointer}
+.qs a:nth-child(2),.qs a:nth-child(3){border-color:#a02cff;background:rgba(60,14,90,.45)}
+.qs svg{width:30px;height:30px;stroke:var(--cyan);fill:none;stroke-width:1.7;flex-shrink:0;stroke-linecap:round;stroke-linejoin:round}
+.qs a:nth-child(2) svg,.qs a:nth-child(3) svg{stroke:var(--pink)}
+.qs b{display:block;font-size:.88rem}.qs small{color:#bcc8ee;font-size:.74rem}.qs i{margin-left:auto;font-style:normal;color:#fff}
+.sec{text-align:center}.sec .shield{width:68px;height:68px;stroke:var(--cyan);fill:none;stroke-width:1.5;margin:6px auto 8px;display:block}
+.sec h4{font:700 1.05rem 'Space Grotesk',sans-serif}.sec p{color:#cfd8ff;font-size:.86rem;margin:4px 0 12px}
+.chk{list-style:none;text-align:left;display:inline-flex;flex-direction:column;gap:8px;font-size:.88rem}
+.chk li:before{content:'\2713';display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;background:#2dbd6e;color:#04200f;font-weight:800;font-size:.72rem;margin-right:10px}
+/* right col */
+.os .it{display:flex;align-items:center;gap:12px;padding:11px 12px;margin-bottom:8px;border-radius:10px;border:1px solid var(--line);background:rgba(8,16,52,.6)}
+.os .it svg{width:26px;height:26px;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.os .it span{flex:1;font-size:.9rem}.os .it b{font:700 .95rem 'Space Grotesk',sans-serif}
+.tot{padding:12px 16px;border-radius:10px;border:1.5px solid var(--blue)}.tot small{color:#cfd8ff}.tot b{display:block;font:800 1.7rem/1.1 'Space Grotesk',sans-serif}
+.qa{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.qa a{display:flex;flex-direction:column;align-items:center;gap:8px;padding:16px 8px;border-radius:12px;border:1.5px solid var(--blue);background:rgba(10,22,70,.55);color:#fff;font-size:.8rem;text-align:center;cursor:pointer}
+.qa svg{width:34px;height:34px;stroke:var(--cyan);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.help{display:flex;gap:14px;align-items:center;padding:14px}
+.help img{width:92px;height:70px;object-fit:cover;border-radius:10px;flex-shrink:0}
+.help h4{font:italic 800 1.25rem 'Space Grotesk',sans-serif;color:var(--pink)}.help p{font-size:.8rem;color:#cfd8ff;margin:2px 0 8px}
+.banner{margin-top:24px;display:flex;align-items:center;gap:18px;padding:18px 24px;border-radius:14px;position:relative;overflow:hidden;border:1.5px solid #3a5bff;background:rgba(8,14,50,.85)}
+.banner .ck{width:46px;height:46px;border-radius:50%;background:var(--cyan);display:grid;place-items:center;flex-shrink:0}.banner .ck svg{width:26px;height:26px;stroke:#04121f;fill:none;stroke-width:3}
+.banner h3{font:700 1.2rem 'Space Grotesk',sans-serif}.banner p{color:#cfd8ff;font-size:.85rem}
+.banner img{position:absolute;right:0;top:0;height:100%;width:42%;object-fit:cover;-webkit-mask-image:linear-gradient(90deg,transparent,#000 45%);mask-image:linear-gradient(90deg,transparent,#000 45%);opacity:.9}
+/* modal */
+.mbg{position:fixed;inset:0;z-index:100;background:rgba(2,4,16,.78);display:none;align-items:center;justify-content:center;padding:16px}
+.mbg.on{display:flex}.mbox{width:100%;max-width:440px}.mbox h3{margin-bottom:14px}
+.mbox label{display:block;font-size:.8rem;color:var(--muted);margin:10px 0 4px}
+.mbox input,.mbox textarea{width:100%;padding:11px 12px;border-radius:9px;border:1.5px solid var(--blue);background:rgba(8,18,56,.8);color:#fff;font:.92rem 'IBM Plex Sans',sans-serif;outline:0}
+.mbox input:focus,.mbox textarea:focus{border-color:var(--cyan)}
+.mrow{display:flex;gap:10px;margin-top:16px;justify-content:flex-end}
+.msg{font-size:.82rem;margin-top:10px;min-height:1em}.msg.bad{color:#ff8f9f}.msg.ok{color:#6dffa1}
+.gate{max-width:520px;margin:50px auto;text-align:center}.gate h2{font:800 1.6rem 'Space Grotesk',sans-serif;margin-bottom:8px}.gate p{color:var(--muted);margin-bottom:18px}
+@media(max-width:1180px){.cols{grid-template-columns:240px minmax(0,1fr)}.cols>.right{grid-column:1/-1;display:grid;grid-template-columns:repeat(3,1fr);gap:22px}}
+@media(max-width:900px){.cols{grid-template-columns:1fr}.cols>.right{grid-template-columns:1fr}.two{grid-template-columns:1fr}.side{display:grid;grid-template-columns:1fr 1fr;gap:4px}.side a{margin:0}.promo{display:none}.pad{display:none}}
+@media(max-width:600px){.pcard{grid-template-columns:auto 1fr}.pcard .btn{grid-column:1/-1;justify-self:start}.ph h1{font-size:1.6rem}.av{width:84px;height:84px}.qs{grid-template-columns:1fr}.side{grid-template-columns:1fr}
+  table,thead,tbody,tr,td{display:block}thead{display:none}tr{padding:10px 0;border-bottom:1px solid var(--line)}td{border:0;padding:3px 4px}td[data-l]:before{content:attr(data-l)': ';color:var(--muted)}.banner img{display:none}}
+</style></head><body>
+<div id="spxHead" data-active=""></div>
+
+<main class="spx-wrap">
+<div class="spx-crumbs"><a href="index.html">Home</a><i>&rsaquo;</i><a href="profile.html">My Account</a><i>&rsaquo;</i><span>Profile</span></div>
+
+<div id="gate" class="panel gate" style="display:none">
+  <h2>Please log in</h2><p>Log in to see your profile, orders and settings.</p>
+  <a class="btn" href="index.html?open=login">Login / Register</a>
+</div>
+
+<div id="app" style="display:none">
+<div class="ph">
+  <div class="ph-l"><span class="ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.400 3.600-7 8-7s8 2.600 8 7"/></svg></span>
+    <div><h1>My Profile</h1><p>Manage your account information and settings</p></div></div>
+  <div class="welc"><div><small>Welcome back,</small><b id="wName"></b></div><span class="badge" style="margin:0"><svg viewBox="0 0 24 24"><path d="M3 8l4 4 5-7 5 7 4-4-2 11H5z"/></svg>Premium Member</span></div>
+</div>
+
+<div class="cols">
+  <!-- LEFT -->
+  <div class="stack">
+    <nav class="panel side" aria-label="Account">
+      <a href="index.html?open=dash"><svg viewBox="0 0 24 24"><path d="M3 11 12 3l9 8"/><path d="M5 10v10h14V10"/></svg>Dashboard</a>
+      <a href="profile.html" class="on"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.400 3.600-7 8-7s8 2.600 8 7"/></svg>Profile</a>
+      <a href="index.html?open=orders"><svg viewBox="0 0 24 24"><path d="M12 2 3 7v10l9 5 9-5V7z"/><path d="M3 7l9 5 9-5M12 12v10"/></svg>My Orders</a>
+      <a href="index.html?open=wishlist"><svg viewBox="0 0 24 24"><path d="M12 21s-8-5.200-8-11a4.500 4.500 0 0 1 8-2.800A4.500 4.500 0 0 1 20 10c0 5.800-8 11-8 11z"/></svg>Wishlist<span class="cnt z" id="sWl">0</span></a>
+      <a href="index.html?open=address"><svg viewBox="0 0 24 24"><path d="M12 22s7-6.500 7-12a7 7 0 0 0-14 0c0 5.500 7 12 7 12z"/><circle cx="12" cy="10" r="2.500"/></svg>Address Book</a>
+      <a href="index.html?open=settings"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>Change Password</a>
+      <a href="#" id="logoutLink"><svg viewBox="0 0 24 24"><path d="M9 21H5V3h4"/><polyline points="16,7 21,12 16,17"/><line x1="21" y1="12" x2="9" y2="12"/></svg>Logout</a>
+    </nav>
+    <div class="panel pad"><img src="assets/art-pad.jpg" alt=""><b>Gaming Never Stops</b><small>Upgrade Your Setup<br>with <span style="color:var(--cyan);font-weight:600">SmartParts</span></small></div>
+    <div class="panel promo"><img src="assets/art-upgrade.jpg" alt=""><div><h3>Upgrade Your Gaming Setup</h3><p>Best accessories. Better performance.</p><a class="btn" href="index.html#products">Shop Now &rarr;</a></div></div>
+  </div>
+
+  <!-- CENTER -->
+  <div class="stack">
+    <section class="panel">
+      <div class="pcard">
+        <div class="av"><div id="avImg"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.400 3.600-7 8-7s8 2.600 8 7" fill="var(--cyan)" stroke="none"/><circle cx="12" cy="8" r="4" fill="var(--cyan)" stroke="none"/></svg></div>
+          <label title="Change photo"><input type="file" id="avFile" accept="image/*" hidden><svg viewBox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.500"/></svg></label></div>
+        <div><h2 id="pName"></h2><div class="em" id="pEmail"></div><span class="badge"><svg viewBox="0 0 24 24"><path d="M3 8l4 4 5-7 5 7 4-4-2 11H5z"/></svg>Premium Member</span></div>
+        <button class="btn ghost" data-edit>&#9998; Edit Profile</button>
+      </div>
+      <div class="stats"><div><b id="stOrders">0</b><small>Total Orders</small></div><div><b id="stWl">0</b><small>Wishlist items</small></div><div><b>Premium</b><small id="stSince">Member Since</small></div></div>
+    </section>
+
+    <section class="panel">
+      <div class="sh"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.400 3.600-7 8-7s8 2.600 8 7"/></svg><h3>Account Information</h3><button class="ed" data-edit>Edit</button></div>
+      <div class="row"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.400 3.600-7 8-7s8 2.600 8 7"/></svg><div><small>Full Name</small><span id="aName"></span></div></div>
+      <div class="row"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><polyline points="3,7 12,13 21,7"/></svg><div><small>Email Address</small><span id="aEmail"></span></div></div>
+      <div class="row"><svg viewBox="0 0 24 24"><rect x="7" y="2" width="10" height="20" rx="2"/><line x1="11" y1="18" x2="13" y2="18"/></svg><div><small>Phone Number</small><span id="aPhone"></span></div></div>
+    </section>
+
+    <section class="panel">
+      <div class="sh"><svg class="i" viewBox="0 0 24 24"><path d="M2 8h11v8H2z"/><path d="M13 11h4l3 3v2h-7"/><circle cx="6" cy="18" r="1.500"/><circle cx="17" cy="18" r="1.500"/></svg><h3>Shipping Address</h3><button class="ed" id="addrEdit">Edit</button></div>
+      <div class="row"><svg viewBox="0 0 24 24"><path d="M12 22s7-6.500 7-12a7 7 0 0 0-14 0c0 5.500 7 12 7 12z"/><circle cx="12" cy="10" r="2.500"/></svg><div><span id="aAddr"></span></div></div>
+    </section>
+
+    <section class="panel">
+      <div class="sh"><svg class="i" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg><h3>Security</h3><a class="ed" href="index.html?open=settings" style="margin-left:auto;font-size:.85rem">Change Password</a></div>
+      <div class="row"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg><div><small>Password</small><span>&bull;&bull;&bull;&bull;&bull;&bull;&bull;</span></div><button class="eye" aria-label="Password is hidden for your security"><svg viewBox="0 0 24 24"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button></div>
+      <div class="row"><svg viewBox="0 0 24 24" style="opacity:0"></svg><div><small>Last Changed</small><span>Not set</span></div></div>
+    </section>
+
+    <section class="panel">
+      <div class="sh"><svg class="i" viewBox="0 0 24 24"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.600 5.600l2.100 2.100M16.300 16.300l2.100 2.100M5.600 18.400l2.100-2.100M16.300 7.700l2.100-2.100"/><circle cx="12" cy="12" r="3"/></svg><h3>Order History</h3><a class="btn ghost" href="index.html?open=orders" style="margin-left:auto">View All Orders &rarr;</a></div>
+      <div id="ordWrap"></div>
+    </section>
+
+    <div class="two">
+      <section class="panel"><div class="sh"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.900 4.900 7 7M17 17l2.100 2.100M4.900 19.100 7 17M17 7l2.100-2.100"/></svg><h3>Quick Settings</h3></div>
+        <div class="qs">
+          <a data-edit><svg viewBox="0 0 24 24"><circle cx="10" cy="8" r="4"/><path d="M2 21c0-4 3.500-6.500 8-6.500"/><path d="M15 19l5-5 2 2-5 5-3 1z"/></svg><div><b>Edit Profile</b><small>Update your information</small></div><i>&rsaquo;</i></a>
+          <a href="index.html?open=address"><svg viewBox="0 0 24 24"><path d="M12 22s7-6.500 7-12a7 7 0 0 0-14 0c0 5.500 7 12 7 12z"/><circle cx="12" cy="10" r="2.500"/></svg><div><b>Manage Addresses</b><small>Add or edit delivery addresses</small></div><i>&rsaquo;</i></a>
+          <a href="index.html?open=settings"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg><div><b>Change Password</b><small>Keep your account secure</small></div><i>&rsaquo;</i></a>
+          <a id="logoutTile"><svg viewBox="0 0 24 24" style="stroke:var(--cyan)"><path d="M9 21H5V3h4"/><polyline points="16,7 21,12 16,17"/><line x1="21" y1="12" x2="9" y2="12"/></svg><div><b>Logout</b><small>Sign out from your account</small></div><i>&rsaquo;</i></a>
+        </div></section>
+      <section class="panel sec"><div class="sh" style="margin-bottom:0"><svg class="i" viewBox="0 0 24 24"><path d="M12 2 4 5v6c0 5 3.400 9.300 8 11 4.600-1.700 8-6 8-11V5z"/><polyline points="8.500,12 11,14.500 15.500,9.500"/></svg><h3 style="font-size:1rem">Account Security</h3></div>
+        <svg class="shield" viewBox="0 0 24 24"><path d="M12 2 4 5v6c0 5 3.400 9.300 8 11 4.600-1.700 8-6 8-11V5z"/><polyline points="8.500,12 11,14.500 15.500,9.500"/></svg>
+        <h4>Your account is secure!</h4><p>Keep your account safe with a strong password and two-factor authentication.</p>
+        <ul class="chk"><li>Password protected</li><li>Email verified</li><li>Two-factor authentication (Coming Soon)</li></ul></section>
+    </div>
+  </div>
+
+  <!-- RIGHT -->
+  <div class="stack right">
+    <section class="panel os">
+      <div class="sh"><h3>Order Summary</h3><a class="ed" href="index.html?open=orders" style="margin-left:auto;font-size:.8rem">View All Orders &rarr;</a></div>
+      <div class="it"><svg viewBox="0 0 24 24" stroke="#ffc928"><circle cx="12" cy="12" r="9"/><polyline points="12,7 12,12 15,14"/></svg><span>Pending</span><b id="cPending">0</b></div>
+      <div class="it"><svg viewBox="0 0 24 24" stroke="#3aa0ff"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.900 4.900 7 7M17 17l2.100 2.100M4.900 19.100 7 17M17 7l2.100-2.100"/></svg><span>Processing</span><b id="cProcessing">0</b></div>
+      <div class="it"><svg viewBox="0 0 24 24" stroke="#a96bff"><path d="M2 8h11v8H2z"/><path d="M13 11h4l3 3v2h-7"/><circle cx="6" cy="18" r="1.500"/><circle cx="17" cy="18" r="1.500"/></svg><span>Shipped</span><b id="cShipped">0</b></div>
+      <div class="it"><svg viewBox="0 0 24 24" stroke="#2dd37a"><circle cx="12" cy="12" r="9"/><polyline points="8,12 11,15 16,9"/></svg><span>Delivered</span><b id="cDelivered">0</b></div>
+      <div class="it"><svg viewBox="0 0 24 24" stroke="#ff4d6a"><circle cx="12" cy="12" r="9"/><line x1="9" y1="9" x2="15" y2="15"/><line x1="15" y1="9" x2="9" y2="15"/></svg><span>Cancelled</span><b id="cCancelled">0</b></div>
+      <div class="tot"><small>Total Orders</small><b id="cTotal">0</b></div>
+    </section>
+    <section class="panel"><div class="sh"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.400 3.600-7 8-7s8 2.600 8 7"/></svg><h3>Quick Actions</h3></div>
+      <div class="qa">
+        <a href="index.html?open=orders"><svg viewBox="0 0 24 24"><path d="M12 2 3 7v10l9 5 9-5V7z"/><path d="M3 7l9 5 9-5M12 12v10"/></svg>Manage Orders</a>
+        <a data-edit><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.400 3.600-7 8-7s8 2.600 8 7"/></svg>Update Profile</a>
+        <a href="index.html?open=track"><svg viewBox="0 0 24 24"><path d="M2 8h11v8H2z"/><path d="M13 11h4l3 3v2h-7"/><circle cx="6" cy="18" r="1.500"/><circle cx="17" cy="18" r="1.500"/></svg>Track Order</a>
+        <a href="policy.html#contact"><svg viewBox="0 0 24 24"><path d="M4 14v-2a8 8 0 0 1 16 0v2"/><rect x="2" y="14" width="5" height="6" rx="2"/><rect x="17" y="14" width="5" height="6" rx="2"/></svg>Contact Support</a>
+      </div></section>
+    <section class="panel help"><img src="assets/art-help.jpg" alt=""><div><h4>Need Help?</h4><p>Our support team is here for you</p><a class="btn" href="policy.html#contact">Contact Us &rarr;</a></div></section>
+  </div>
+</div>
+
+<div class="banner"><span class="ck"><svg viewBox="0 0 24 24"><polyline points="5,12 10,17 19,7"/></svg></span><div><h3 id="bName">Welcome back!</h3><p>We're happy to have you back. Keep gaming!</p></div><img src="assets/art-banner.jpg" alt=""></div>
+</div>
+</main>
+
+<!-- edit profile modal -->
+<div class="mbg" id="mProf"><div class="panel mbox"><h3>Edit Profile</h3>
+  <label for="fName">Full Name</label><input id="fName" maxlength="60">
+  <label for="fPhone">Phone Number</label><input id="fPhone" inputmode="tel" placeholder="0771234567">
+  <div class="msg" id="fMsg"></div>
+  <div class="mrow"><button class="btn ghost" data-close>Cancel</button><button class="btn" id="fSave">Save</button></div></div></div>
+<!-- address modal -->
+<div class="mbg" id="mAddr"><div class="panel mbox"><h3>Shipping Address</h3>
+  <label for="fAddr">House no, street, city, postal code</label><textarea id="fAddr" rows="4" maxlength="200"></textarea>
+  <div class="mrow"><button class="btn ghost" data-close>Cancel</button><button class="btn" id="aSave">Save</button></div></div></div>
+
+<div id="spxFoot"></div>
+<script src="sp-pages.js"></script>
+<script>
+(function () {
+  var SUPA = 'https://qugzplavwjphcsvhhmce.supabase.co', KEY = 'sb_publishable_Yt4U1VouugJzfo1d_CzKxQ_C1bclvcp';
+  var sb = null; try { if (window.supabase) sb = window.supabase.createClient(SUPA, KEY); } catch (e) {}
+  function J(k, d) { try { var v = JSON.parse(localStorage.getItem(k)); return v == null ? d : v; } catch (e) { return d; } }
+  function $(i) { return document.getElementById(i); }
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  var user = J('sp_currentUser', null);
+  if (!user || !user.email) { $('gate').style.display = ''; return; }
+  var email = String(user.email).toLowerCase();
+  $('app').style.display = '';
+
+  function users() { return J('sp_users', {}); }
+  function me() { return users()[user.email] || users()[email] || {}; }
+  function addrKey() { return 'sp_addr_' + user.email; }
+  function addrs() { var a = J(addrKey(), []); return Array.isArray(a) ? a : []; }
+  function stOf(s) {
+    s = String(s || '').toLowerCase().replace(/[\s-]+/g, '_');
+    if (/deliver|complete/.test(s)) return 'Delivered';
+    if (/ship|dispatch|out_for/.test(s)) return 'Shipped';
+    if (/process|confirm|paid|packed/.test(s)) return 'Processing';
+    if (/cancel|fail|refund/.test(s)) return 'Cancelled';
+    return 'Pending';
+  }
+  function orders() { return J('sp_orders', []).filter(function (o) { return String(o.email || '').toLowerCase() === email; })
+    .sort(function (a, b) { return new Date(b.date) - new Date(a.date); }); }
+  function lkr(n) { return 'LKR ' + Number(n || 0).toLocaleString(); }
+  function d10(d) { var x = new Date(d); return isNaN(x) ? '' : x.toISOString().slice(0, 10); }
+
+  function render() {
+    var u = me(), name = user.name || '', phone = u.phone || '';
+    ['wName', 'pName', 'aName'].forEach(function (i) { $(i).textContent = name; });
+    $('wName').textContent = name + '!'; $('bName').textContent = 'Welcome back, ' + name + '!';
+    $('pEmail').textContent = user.email; $('aEmail').textContent = user.email;
+    $('aPhone').textContent = phone || 'Not added yet';
+    var wl = (J('sp_wishlists', {})[user.email] || []).length;
+    $('sWl').textContent = wl; $('stWl').textContent = wl;
+    var since = u.since ? new Date(u.since) : null;
+    $('stSince').textContent = since && !isNaN(since) ? 'Member Since ' + since.toLocaleString('en', { month: 'short', year: 'numeric' }) : 'Member Since';
+    var av = localStorage.getItem('sp_avatar_' + user.email);
+    if (av) { $('avImg').style.backgroundImage = 'url(' + av + ')'; $('avImg').innerHTML = ''; }
+    var a = addrs();
+    $('aAddr').innerHTML = a.length ? esc(a[0]).replace(/,\s*/g, '<br>') : '<span style="color:var(--muted)">No address saved yet</span>';
+
+    var o = orders(), c = { Pending: 0, Processing: 0, Shipped: 0, Delivered: 0, Cancelled: 0 };
+    o.forEach(function (x) { c[stOf(x.status)]++; });
+    Object.keys(c).forEach(function (k) { $('c' + k).textContent = c[k]; });
+    $('cTotal').textContent = o.length; $('stOrders').textContent = o.length;
+    if (!o.length) { $('ordWrap').innerHTML = '<div class="empty">No orders yet. <a href="index.html#products">Start shopping &rarr;</a></div>'; return; }
+    var box = '<svg viewBox="0 0 24 24"><path d="M12 2 3 7v10l9 5 9-5V7z"/><path d="M3 7l9 5 9-5M12 12v10"/></svg>';
+    $('ordWrap').innerHTML = '<table><thead><tr><th>#</th><th>Date</th><th>Items</th><th>Total</th><th>Status</th><th>Action</th></tr></thead><tbody>' +
+      o.slice(0, 4).map(function (x, i) {
+        var n = (x.items || []).reduce(function (s, it) { return s + (Number(it.qty) || 1); }, 0) || (x.items || []).length || 1, st = stOf(x.status);
+        return '<tr><td data-l="#">' + (i + 1) + '.</td><td data-l="Date"><b style="font-weight:500">#' + esc(x.orderId) + '</b><br><small style="color:var(--muted)">' + d10(x.date) + '</small></td>' +
+          '<td data-l="Items"><span class="thumb">' + box + '</span>' + n + ' item' + (n > 1 ? 's' : '') + '</td><td data-l="Total">' + lkr(x.total) + '</td>' +
+          '<td data-l="Status"><span class="st ' + st + '">' + st + '</span></td><td><a class="btn ghost" style="padding:6px 22px" href="index.html?open=track&id=' + encodeURIComponent(x.orderId) + '">View</a></td></tr>';
+      }).join('') + '</tbody></table>';
+  }
+  render();
+
+  /* sync latest orders from the shop database, then redraw */
+  if (sb) {
+    sb.rpc('get_my_orders').then(function (r) {
+      if (r.error || !Array.isArray(r.data)) return;
+      var all = J('sp_orders', []), ch = false;
+      r.data.forEach(function (o) {
+        var id = String(o.order_number || ''); if (!id) return;
+        var st = String(o.status || '').toLowerCase().replace(/[\s-]+/g, '_'); if (st === 'failed' || st === 'awaiting_payment') return;
+        var items = o.items; if (typeof items === 'string') { try { items = JSON.parse(items); } catch (e) { items = []; } }
+        items = (Array.isArray(items) ? items : []).map(function (i) { i = i || {}; return { name: String(i.name || i.product_name || 'Item'), qty: Number(i.qty || i.quantity || 1), price: Number(i.price || 0) }; });
+        var rec = all.filter(function (a) { return a.orderId === id; })[0];
+        if (!rec) { all.push({ orderId: id, total: Number(o.total) || 0, date: o.created_at || new Date().toISOString(), email: email, items: items, status: o.status || '' }); ch = true; }
+        else if (o.status && rec.status !== o.status) { rec.status = o.status; ch = true; }
+      });
+      if (ch) { try { localStorage.setItem('sp_orders', JSON.stringify(all.slice(0, 100))); } catch (e) {} render(); }
+    }).catch(function () {});
+  }
+
+  /* modals */
+  function open(id) { $(id).classList.add('on'); } function close() { document.querySelectorAll('.mbg').forEach(function (m) { m.classList.remove('on'); }); }
+  document.querySelectorAll('[data-close]').forEach(function (b) { b.onclick = close; });
+  document.querySelectorAll('.mbg').forEach(function (m) { m.addEventListener('click', function (e) { if (e.target === m) close(); }); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') close(); });
+  document.querySelectorAll('[data-edit]').forEach(function (b) { b.onclick = function () { $('fName').value = user.name || ''; $('fPhone').value = me().phone || ''; $('fMsg').textContent = ''; open('mProf'); }; });
+  $('fSave').onclick = function () {
+    var name = $('fName').value.trim(), phone = $('fPhone').value.replace(/[\s-]/g, ''), m = $('fMsg');
+    if (/^\+94\d{9}$/.test(phone)) phone = '0' + phone.slice(3);
+    if (!name) { m.textContent = 'Please enter your name.'; m.className = 'msg bad'; return; }
+    if (phone && !/^0\d{9}$/.test(phone)) { m.textContent = 'Enter a valid phone number (e.g. 0771234567).'; m.className = 'msg bad'; return; }
+    user.name = name; localStorage.setItem('sp_currentUser', JSON.stringify(user));
+    var us = users(); us[user.email] = us[user.email] || { since: Date.now() }; us[user.email].name = name; us[user.email].phone = phone; localStorage.setItem('sp_users', JSON.stringify(us));
+    if (sb) { try { sb.rpc('upsert_customer', { p_name: name, p_email: user.email, p_phone: phone }); } catch (e) {} }
+    render(); m.textContent = 'Saved \u2713'; m.className = 'msg ok'; setTimeout(close, 600);
+  };
+  $('addrEdit').onclick = function () { $('fAddr').value = addrs()[0] || ''; open('mAddr'); };
+  $('aSave').onclick = function () {
+    var v = $('fAddr').value.trim(), a = addrs(); if (v) { a = a.filter(function (x) { return x !== v; }); a.unshift(v.slice(0, 200)); }
+    localStorage.setItem(addrKey(), JSON.stringify(a.slice(0, 5))); render(); close();
+  };
+  $('avFile').onchange = function () {
+    var f = this.files && this.files[0]; if (!f) return;
+    var img = new Image(), url = URL.createObjectURL(f);
+    img.onload = function () { var c = document.createElement('canvas'); c.width = c.height = 160; var x = c.getContext('2d'), m = Math.min(img.width, img.height);
+      x.drawImage(img, (img.width - m) / 2, (img.height - m) / 2, m, m, 0, 0, 160, 160);
+      try { localStorage.setItem('sp_avatar_' + user.email, c.toDataURL('image/jpeg', .85)); } catch (e) {} URL.revokeObjectURL(url); render(); };
+    img.src = url;
+  };
+  function logout(e) { if (e) e.preventDefault(); try { if (sb) sb.auth.signOut(); } catch (x) {} localStorage.removeItem('sp_currentUser'); location.href = 'index.html'; }
+  $('logoutLink').onclick = logout; $('logoutTile').onclick = logout;
+})();
+</script>
+</body></html>
