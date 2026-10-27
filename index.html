@@ -7893,5 +7893,115 @@ background:linear-gradient(90deg,#05060c 0%,rgba(5,6,12,.96) 32%,rgba(5,6,12,.45
 })();
 
 </script>
+<!-- ================= SMART AI CHAT WIDGET ================= -->
+<div id="smart-chat-widget">
+    <div id="chat-header">
+        <span>🤖 SmartParts AI Assistant</span>
+        <button onclick="toggleChat()" aria-label="Close chat">✖</button>
+    </div>
+    <div id="chat-body">
+        <div class="bot-message">ආයුබෝවන්! 👋 SmartParts වෙත සාදරයෙන් පිළිගනිමු. අද ඔබට අවශ්‍ය කරන Computer, Laptop හෝ Gaming Accessories මොනවාද?</div>
+    </div>
+    <div id="chat-footer-input">
+        <input type="text" id="user-input" placeholder="පණිවිඩය මෙතන ලියන්න (Type here)..." onkeypress="handleKey(event)">
+        <button onclick="sendMessage()">Send</button>
+    </div>
+</div>
+
+<!-- Floating Chat Button -->
+<div id="chat-launcher" onclick="toggleChat()" aria-label="Open chat">💬</div>
+
+<style>
+#chat-launcher {
+    position: fixed;
+    bottom: 160px; /* WhatsApp සහ Back-to-top බොත්තම් වලට උඩින් */
+    right: 22px;
+    background: #00ffcc;
+    color: #000;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 26px;
+    cursor: pointer;
+    box-shadow: 0 0 20px #00ffcc;
+    z-index: 99999;
+    transition: transform 0.2s ease;
+}
+#chat-launcher:hover { transform: scale(1.1); }
+
+#smart-chat-widget {
+    position: fixed;
+    bottom: 230px;
+    right: 22px;
+    width: 350px;
+    max-width: calc(100vw - 30px);
+    height: 450px;
+    max-height: calc(100vh - 250px);
+    background: #121212;
+    border: 1px solid #ff007f;
+    border-radius: 12px;
+    display: none;
+    flex-direction: column;
+    box-shadow: 0 0 25px rgba(255,0,127,0.5);
+    z-index: 99999;
+    color: #fff;
+    font-family: sans-serif;
+}
+#chat-header {
+    background: #ff007f;
+    padding: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top-left-radius: 11px;
+    border-top-right-radius: 11px;
+    font-weight: bold;
+}
+#chat-header button { background: none; border: none; color: #fff; cursor: pointer; font-size: 16px; }
+#chat-body { flex: 1; padding: 12px; overflow-y: auto; font-size: 14px; display: flex; flex-direction: column; gap: 10px; }
+.bot-message { background: #222; padding: 8px 12px; border-radius: 8px; align-self: flex-start; max-width: 85%; border-left: 3px solid #00ffcc; }
+.user-message { background: #ff007f; padding: 8px 12px; border-radius: 8px; align-self: flex-end; max-width: 85%; word-break: break-word; }
+#chat-footer-input { display: flex; padding: 10px; background: #1a1a1a; border-bottom-left-radius: 11px; border-bottom-right-radius: 11px; }
+#chat-footer-input input { flex: 1; min-width: 0; background: #333; border: none; padding: 8px; color: #fff; border-radius: 4px; outline: none; }
+#chat-footer-input button { background: #00ffcc; border: none; padding: 8px 14px; margin-left: 6px; font-weight: bold; cursor: pointer; border-radius: 4px; color: #000; }
+</style>
+
+<script>
+function toggleChat() {
+    const widget = document.getElementById('smart-chat-widget');
+    widget.style.display = widget.style.display === 'flex' ? 'none' : 'flex';
+}
+
+function sendMessage() {
+    const input = document.getElementById('user-input');
+    const text = input.value.trim();
+    if(!text) return;
+
+    const chatBody = document.getElementById('chat-body');
+    const userMsg = document.createElement('div');
+    userMsg.className = 'user-message';
+    userMsg.textContent = text; // textContent: user input HTML ලෙස run වීම වළක්වයි
+    chatBody.appendChild(userMsg);
+    input.value = '';
+    chatBody.scrollTop = chatBody.scrollHeight;
+
+    setTimeout(() => {
+        const botMsg = document.createElement('div');
+        botMsg.className = 'bot-message';
+        botMsg.textContent = 'ඔබගේ ඉල්ලීම සකස් කරමින් පවතී... AI Assistant සූදානම්!';
+        chatBody.appendChild(botMsg);
+        chatBody.scrollTop = chatBody.scrollHeight;
+    }, 1000);
+}
+
+function handleKey(e) {
+    if(e.key === 'Enter') sendMessage();
+}
+</script>
+<!-- ======================================================= -->
+
 </body>
 </html>

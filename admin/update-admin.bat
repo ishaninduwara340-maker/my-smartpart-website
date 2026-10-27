@@ -8,11 +8,11 @@ echo.
 :: Stage all changes
 git add .
 
-:: Commit changes with automated timestamp
-git commit -m "Auto update admin panel: %date% %time%"
+:: Commit changes with a simple message (Avoiding date/time formatting issues)
+git commit -m "Admin panel auto update"
 
-:: Force push to main branch
-git push origin main --force
+:: Push to main branch (Removed --force unless strictly needed, standard push is safer)
+git push origin main
 
 echo.
 echo ==========================================
