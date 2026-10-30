@@ -2194,104 +2194,35 @@
             return (!isNaN(sub) && sub > 0 ? sub : orderTotal(o)) >= window.SHIP_TARGET;
         };
 
-        // ===== Invoice (same neon design as the website Quotation / Invoice PDF) =====
-        const spLogoSrc = () => { const im = document.querySelector('.sidebar-header img, .login-card img'); return im ? im.getAttribute('src') : ''; };
-        function ymd(d) { return d ? d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0') : '-'; }
-        function invoiceHTML(o) {
-            const items = oItems(o), d = oDate(o), total = orderTotal(o);
-            const sub = parseFloat(o.subtotal) > 0 ? parseFloat(o.subtotal) : total;
-            const disc = parseFloat(o.discount) > 0 ? parseFloat(o.discount) : 0;
-            const free = window.isFreeShip(o);
-            const fee = Math.max(0, Math.round(total - (sub - disc)));
-            const no = String(o.order_number || o.id);
-            const logo = spLogoSrc();
-            const bank = isBank(o);
-            const pm = o.payment_method ? String(o.payment_method) : '-';
-            const ps = o.payment_status ? payStatus(o) : (bank ? 'Pending' : '-');
-            const rows = items.length ? items.map((it, i) => `<tr><td class="c">${i + 1}</td><td>${escapeHTML(it.name || '-')}</td><td class="c">${it.qty || 1}</td><td class="r">${(Number(it.price) || 0).toLocaleString()}</td><td class="r">${((Number(it.price) || 0) * (it.qty || 1)).toLocaleString()}</td></tr>`).join('')
-                : '<tr><td colspan="5" class="c" style="color:#9aa8d6">Item details are not stored on this order record.</td></tr>';
-            const trow = (k, v) => `<div class="tr"><span>${k}</span><span>${v}</span></div>`;
-            const lm = o.location ? `<div class="kv"><span>Landmark</span><b>:</b><em>${escapeHTML(o.location)}</em></div>` : '';
-            return `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Invoice - ${escapeHTML(no)}</title><style>
-              @page{size:A4;margin:0}
-              *{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-              html,body{margin:0;background:#040716}
-              body{font-family:'Segoe UI',Arial,Helvetica,sans-serif;color:#e8eeff;font-size:12.5px}
-              .pg{width:210mm;min-height:297mm;margin:0 auto;background:#040716;display:flex;flex-direction:column;position:relative}
-              .grad{background:linear-gradient(90deg,#00b7ff,#6a5cff,#ff2bd6)}
-              .hd{position:relative;height:41mm;padding:8mm 10mm;display:flex;align-items:center;gap:6mm;overflow:hidden}
-              .hd img{height:24mm;width:auto}
-              .hd .nm{font-style:italic;font-weight:800;font-size:31px;line-height:1;color:#fff}.hd .nm i{color:#00b7ff;font-style:italic}
-              .hd .s1{font-size:12px;margin-top:6px;color:#e8eeff}.hd .s2{font-size:9.5px;margin-top:6px;letter-spacing:.32em;color:#00b7ff}
-              .hd svg{position:absolute;right:0;top:0;height:41mm;width:70mm}
-              .hd .gu{position:absolute;right:14mm;top:7mm;font-style:italic;font-weight:800;font-size:19px;line-height:1.25;transform:rotate(-6deg);color:#fff;text-align:left}.hd .gu b{color:#ff2bd6;display:block}
-              .bar{height:1mm}.bar.t{height:.5mm}
-              .ct{background:#070c28;height:14mm;display:flex;align-items:center;justify-content:space-between;padding:0 12mm;font-size:11px;color:#fff}
-              .ct span:before{content:'';display:inline-block;width:5px;height:5px;border-radius:50%;background:#00e5ff;margin-right:6px;vertical-align:middle}
-              .body{padding:0 10mm}
-              .ttl{display:flex;justify-content:space-between;align-items:flex-start;margin:9mm 0 6mm}
-              .ttl .l{display:flex;gap:5mm;align-items:center}
-              .ico{width:11mm;height:14mm;border:2px solid #00e5ff;border-radius:2mm;position:relative}
-              .ico:before,.ico:after{content:'';position:absolute;left:2.4mm;height:1.5px;background:#00e5ff}.ico:before{top:4.5mm;width:5mm;box-shadow:0 3mm 0 #00e5ff}.ico:after{top:10mm;width:3mm}
-              .ttl h1{margin:0;font-style:italic;font-size:34px;line-height:1;color:#fff}.ttl .st{font-style:italic;font-weight:800;font-size:15px;color:#00e5ff;margin-top:2mm;text-transform:uppercase}
-              .meta{border:1px solid #344edc;border-radius:3mm;padding:3.5mm 5mm;width:72mm;font-size:12px}
-              .kv{display:flex;gap:6px;margin:1.6mm 0}.kv span{width:24mm;color:#fff}.kv b{font-weight:400}.kv em{font-style:normal;color:#00e5ff;word-break:break-word;flex:1}
-              .cu{border:1px solid #344edc;border-radius:3mm;padding:4mm 6mm;margin-bottom:6mm}
-              .cu h3{margin:0 0 2.5mm;font-size:14px;color:#fff;display:flex;align-items:center;gap:8px}.cu h3:before{content:'';width:12px;height:12px;border-radius:50%;background:#00b7ff}
-              .cu .kv span{width:18mm}.cu .kv em{color:#c8dcff}
-              table{width:100%;border-collapse:collapse}
-              th{color:#fff;padding:7px 8px;font-size:11.5px;text-align:center;background:linear-gradient(90deg,#00b7ff,#6a5cff,#ff2bd6);border:1px solid #344edc}
-              td{padding:7px 8px;background:#070c28;border:1px solid #344edc;font-size:12px}
-              tr{page-break-inside:avoid}.c{text-align:center}.r{text-align:right}
-              .bt{display:flex;gap:6mm;margin-top:6mm;align-items:flex-start;page-break-inside:avoid}
-              .nt{flex:1;border:1px solid #344edc;border-radius:3mm;padding:4mm 5mm;min-height:40mm}
-              .nt h3{margin:0 0 2mm;font-size:13px;color:#fff}.nt li{margin:1.2mm 0;font-size:10.8px;color:#e8eeff;list-style:none;padding-left:10px;position:relative}
-              .nt li:before{content:'';position:absolute;left:0;top:6px;width:4px;height:4px;border-radius:50%;background:#00e5ff}
-              .tt{width:88mm}.tr{display:flex;justify-content:space-between;background:#070c28;border:1px solid #344edc;padding:2.4mm 4mm;font-size:12px;margin-top:-1px}
-              .gt{display:flex;justify-content:space-between;padding:3mm 4mm;font-weight:800;color:#fff;font-size:14px;background:linear-gradient(90deg,#00b7ff,#6a5cff,#ff2bd6)}
-              .ty{display:flex;justify-content:space-between;align-items:flex-end;margin:9mm 0 6mm;page-break-inside:avoid}
-              .ty h2{margin:0;font-style:italic;font-size:27px;color:#6a5cff}.ty p{margin:1mm 0;font-size:11.5px}
-              .sg{width:62mm;text-align:center}.sg .b{display:flex;align-items:center;justify-content:center;gap:3mm;font-style:italic;font-weight:800;font-size:18px;color:#fff;margin-bottom:2mm}.sg .b i{color:#00b7ff}.sg img{height:15mm}
-              .sg .ln{height:.6mm;margin:3mm 0 2mm}.sg small{font-size:11px;color:#e8eeff}
-              .ft{margin-top:auto}.ft .row{display:flex;justify-content:space-between;align-items:center;padding:4mm 10mm 6mm;font-size:10px}
-              .ft .row span.d:before{content:'';display:inline-block;width:5px;height:5px;border-radius:50%;background:#00e5ff;margin-right:5px}
-              .ft .tag{font-style:italic;font-weight:800;text-align:right;font-size:11px;color:#00e5ff;line-height:1.4}.ft .tag b{color:#ff2bd6;display:block}
-            </style></head><body><div class="pg">
-              <div class="hd">${logo ? `<img src="${logo}" alt="">` : ''}
-                <div><div class="nm">Smart<i>Parts</i></div><div class="s1">Tech &amp; Gaming Accessories</div><div class="s2">PLAY / UPGRADE / DOMINATE</div></div>
-                <svg viewBox="0 0 70 41" preserveAspectRatio="none"><g stroke-width=".5" fill="none"><line x1="40" y1="0" x2="10" y2="40" stroke="#00b7ff"/><line x1="49" y1="0" x2="19" y2="40" stroke="#2a93ff"/><line x1="58" y1="0" x2="28" y2="40" stroke="#5470ff"/><line x1="67" y1="0" x2="37" y2="40" stroke="#8f5cff"/><line x1="76" y1="0" x2="46" y2="40" stroke="#cc50ec"/><line x1="85" y1="0" x2="55" y2="40" stroke="#ff2bd6"/></g></svg>
-                <div class="gu">GEAR UP<b>YOUR GAME</b></div></div>
-              <div class="bar grad"></div>
-              <div class="ct"><span>+94 76 739 6487</span><span>ishaninduwara36@gmail.com</span><span>Sri Lanka</span><span>smartpartlk.netlify.app</span></div>
-              <div class="bar t grad"></div>
-              <div class="body">
-                <div class="ttl"><div class="l"><div class="ico"></div><div><h1>INVOICE</h1><div class="st">${escapeHTML(normStatus(o.status))}</div></div></div>
-                  <div class="meta"><div class="kv"><span>Invoice No</span><b>:</b><em>${escapeHTML(no)}</em></div><div class="kv"><span>Date</span><b>:</b><em>${escapeHTML(ymd(d))}</em></div><div class="kv"><span>Payment</span><b>:</b><em>${escapeHTML(pm)}</em></div><div class="kv"><span>Pay Status</span><b>:</b><em>${escapeHTML(ps)}</em></div></div></div>
-                <div class="cu"><h3>Customer Details</h3>
-                  <div class="kv"><span>Name</span><b>:</b><em>${escapeHTML(o.customer_name || '-')}</em></div>
-                  <div class="kv"><span>Phone</span><b>:</b><em>${escapeHTML(o.customer_phone || '-')}</em></div>
-                  <div class="kv"><span>Email</span><b>:</b><em>${escapeHTML(o.customer_email || '-')}</em></div>
-                  <div class="kv"><span>Address</span><b>:</b><em>${escapeHTML(oAddr(o) || '-')}</em></div>${lm}</div>
-                <table><thead><tr><th style="width:12mm">No</th><th>Product</th><th style="width:16mm">Qty</th><th style="width:32mm">Unit Price (LKR)</th><th style="width:34mm">Total (LKR)</th></tr></thead><tbody>${rows}</tbody></table>
-                <div class="bt">
-                  <div class="nt"><h3>${bank ? 'Payment Details &amp; Notes' : 'Notes'}</h3><ul style="margin:0;padding:0">
-                    ${bank ? '<li>Payment method: Direct Bank Transfer.</li><li>Send the transfer slip on WhatsApp (076-7396487) with the Order ID.</li>' : '<li>Thank you for your order!</li>'}
-                    <li>Delivery: 2 - 4 working days (island-wide courier).</li><li>Warranty: as per manufacturer / company warranty policy.</li></ul></div>
-                  <div class="tt">${trow('Sub Total', lk(sub))}${disc > 0 ? trow('Discount' + (o.coupon ? ' (' + escapeHTML(String(o.coupon)) + ')' : ''), '- ' + lk(disc)) : ''}${free ? trow('Delivery', '<b style="color:#00ffcc">FREE</b>') : (fee > 0 ? trow('Delivery / Charges', lk(fee)) : '')}<div class="gt"><span>Total Amount</span><span>${lk(total)}</span></div></div>
-                </div>
-                <div class="ty"><div><h2>Thank You!</h2><p>For choosing SmartParts</p><p>We appreciate your support!</p></div>
-                  <div class="sg"><div class="b">${logo ? `<img src="${logo}" alt="">` : ''}<span>Smart<i>Parts</i></span></div><div class="ln grad"></div><small>Authorized Signature</small></div></div>
-              </div>
-              <div class="ft"><div class="bar t grad"></div><div class="row"><span class="d">100% Original Products</span><span class="d">Fast Island-wide Delivery</span><span class="d">24/7 Customer Support</span><span class="d">Secure Payments</span><div class="tag">GAMING GEAR<b>FOR A BETTER TOMORROW</b></div></div></div>
-            </div></body></html>`;
-        }
+        // ===== Invoice (table layout) =====
         window.printInvoice = function(orderId) {
             const o = allOrdersData.find(x => String(x.id) === String(orderId));
             if (!o) { alert('Order not found.'); return; }
-            const win = window.open('', '', 'height=900,width=820');
-            if (!win) { alert('Pop-up blocked — allow pop-ups for this page to print the invoice.'); return; }
-            win.document.write(invoiceHTML(o)); win.document.close(); win.focus();
-            setTimeout(() => { try { win.print(); } catch (e) {} }, 500);
+            const items = oItems(o), d = oDate(o), total = orderTotal(o);
+            const sub = parseFloat(o.subtotal) > 0 ? parseFloat(o.subtotal) : total;
+            const disc = parseFloat(o.discount) > 0 ? parseFloat(o.discount) : 0;
+            const no = String(o.order_number || o.id);
+            const rows = items.length ? items.map((it, i) => `<tr><td>${i + 1}</td><td>${escapeHTML(it.name || '-')}</td><td class="r">${it.qty || 1}</td><td class="r">${(Number(it.price) || 0).toLocaleString()}</td><td class="r">${((Number(it.price) || 0) * (it.qty || 1)).toLocaleString()}</td></tr>`).join('')
+                : '<tr><td colspan="5" style="text-align:center;color:#888">Item details are not stored on this order record.</td></tr>';
+            const html = `<html><head><title>Invoice - ${escapeHTML(no)}</title><style>
+                @page{size:A4;margin:14mm}body{font-family:Arial,Helvetica,sans-serif;color:#111;font-size:13px}
+                .top{display:flex;justify-content:space-between;border-bottom:3px solid #12121a;padding-bottom:10px}
+                h1{margin:0;font-size:24px}.muted{color:#666}.box{display:flex;gap:30px;margin:16px 0}.box div{flex:1}
+                table{width:100%;border-collapse:collapse;margin-top:6px}th{background:#12121a;color:#fff;text-align:left;padding:8px;font-size:12px}
+                td{padding:8px;border-bottom:1px solid #ddd}.r{text-align:right}.tot{width:260px;margin-left:auto;margin-top:12px}
+                .tot td{border:0;padding:4px 8px}.grand td{border-top:2px solid #12121a;font-weight:700;font-size:15px}.free{color:#0a8f5a;font-weight:700}
+            </style></head><body>
+            <div class="top"><div><h1>SmartParts</h1><div class="muted">PC Hardware &amp; Components Store, Sri Lanka<br>Hotline: 076-7396487 | WhatsApp: +94 76 739 6487</div></div>
+            <div style="text-align:right"><h1 style="font-size:20px">INVOICE</h1><div>No: <b>${escapeHTML(no)}</b><br>Date: ${d ? escapeHTML(d.toLocaleDateString()) : '-'}<br>Status: ${escapeHTML(normStatus(o.status))}</div></div></div>
+            <div class="box"><div><b>Bill / Ship to</b><br>${escapeHTML(o.customer_name || '-')}<br>${escapeHTML(o.customer_phone || '')}<br>${escapeHTML(o.customer_email || '')}<br>${escapeHTML(oAddr(o))}</div></div>
+            <table><thead><tr><th style="width:30px">#</th><th>Item</th><th class="r" style="width:50px">Qty</th><th class="r" style="width:90px">Unit (LKR)</th><th class="r" style="width:100px">Amount (LKR)</th></tr></thead><tbody>${rows}</tbody></table>
+            <table class="tot"><tr><td>Subtotal</td><td class="r">${lk(sub)}</td></tr>
+            ${disc > 0 ? `<tr><td>Discount${o.coupon ? ' (' + escapeHTML(String(o.coupon)) + ')' : ''}</td><td class="r">- ${lk(disc)}</td></tr>` : ''}
+            ${window.isFreeShip(o) ? '<tr><td>Delivery</td><td class="r free">FREE</td></tr>' : ''}
+            <tr class="grand"><td>Total</td><td class="r">${lk(total)}</td></tr></table>
+            <p class="muted" style="margin-top:30px">Thank you for shopping with SmartParts. Company warranty applies as per our warranty policy.</p></body></html>`;
+            const win = window.open('', '', 'height=800,width=900');
+            win.document.write(html); win.document.close(); win.focus(); win.print();
         };
 
         // ===== Courier label / packing slip (editable size) =====
@@ -2299,25 +2230,13 @@
         const lsGet = (k, d) => { try { return localStorage.getItem(k) || d; } catch (e) { return d; } };
         const lsSet = (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} };
         function labelHTML(o, w, h, fs, sender, withItems) {
-            const items = oItems(o), d = oDate(o), logo = spLogoSrc();
-            const lh = Math.max(7, Math.min(12, w / 9));   // logo height (mm) scales with the label width
-            const itemRows = items.map(it => `<tr><td style="padding:.4mm 0;white-space:nowrap;vertical-align:top;font-weight:700">${it.qty || 1} x</td><td style="padding:.4mm 0 .4mm 1.5mm">${escapeHTML(it.name || '-')}</td></tr>`).join('');
-            const pill = (t) => `<span style="display:inline-block;background:#000;color:#fff;font-weight:700;letter-spacing:.12em;font-size:${fs * 0.72}px;padding:.3mm 2mm;border-radius:1mm;-webkit-print-color-adjust:exact;print-color-adjust:exact">${t}</span>`;
-            return `<div style="box-sizing:border-box;width:${w}mm;height:${h}mm;padding:3.5mm;border:1.2px solid #000;border-radius:2mm;font-family:Arial,Helvetica,sans-serif;font-size:${fs}px;color:#000;background:#fff;overflow:hidden;display:flex;flex-direction:column;gap:2.2mm">
-              <div style="display:flex;align-items:center;gap:2.5mm;border-bottom:1.6px solid #000;padding-bottom:2mm">
-                ${logo ? `<img src="${logo}" alt="" style="height:${lh}mm;width:auto">` : ''}
-                <div style="flex:1;min-width:0"><div style="font-weight:800;font-style:italic;font-size:${fs * 1.55}px;line-height:1">SmartParts</div><div style="font-size:${fs * 0.75}px;margin-top:.8mm;letter-spacing:.06em">Tech &amp; Gaming Accessories</div></div>
-                <div style="text-align:right;font-size:${fs * 0.78}px;line-height:1.3">Hotline<br><b>076-7396487</b></div></div>
-              <div style="font-size:${fs * 0.88}px">${pill('FROM')}<div style="white-space:pre-line;margin-top:.8mm;line-height:1.25">${escapeHTML(sender)}</div></div>
-              <div style="flex:1;border:1.2px solid #000;border-radius:1.5mm;padding:2mm 2.5mm;overflow:hidden">${pill('TO')}
-                <div style="font-weight:800;font-size:${fs * 1.6}px;margin:1mm 0 .6mm;line-height:1.15">${escapeHTML(o.customer_name || '-')}</div>
-                <div>Tel: <b style="font-size:${fs * 1.15}px">${escapeHTML(o.customer_phone || '-')}</b></div>
-                <div style="margin-top:.6mm;line-height:1.3">${escapeHTML(oAddr(o) || '-')}</div>${o.location ? `<div style="margin-top:.6mm">Landmark: <b>${escapeHTML(o.location)}</b></div>` : ''}</div>
-              ${withItems ? `<div><div style="font-size:${fs * 0.72}px;font-weight:700;letter-spacing:.12em;margin-bottom:.6mm">ITEMS</div><table style="width:100%;border-collapse:collapse;font-size:${fs * 0.88}px">${itemRows || '<tr><td>-</td></tr>'}</table></div>` : ''}
-              <div style="border-top:1.6px solid #000;padding-top:1.8mm;display:flex;justify-content:space-between;align-items:flex-end;gap:2mm">
-                <span style="line-height:1.3">Order<br><b style="font-size:${fs * 1.1}px">${escapeHTML(String(o.order_number || o.id))}</b>${d ? '<br>' + escapeHTML(ymd(d)) : ''}</span>
-                <span style="text-align:right;line-height:1.3">Total<br><b style="font-size:${fs * 1.35}px">${lk(orderTotal(o))}</b>${window.isFreeShip(o) ? '<br>Delivery: FREE' : ''}</span></div>
-              <div style="text-align:center;font-size:${fs * 0.7}px;font-style:italic;letter-spacing:.04em">Thank you for shopping with SmartParts!</div></div>`;
+            const items = oItems(o), d = oDate(o);
+            const itemRows = items.map(it => `<tr><td>${it.qty || 1} x</td><td>${escapeHTML(it.name || '-')}</td></tr>`).join('');
+            return `<div style="box-sizing:border-box;width:${w}mm;height:${h}mm;padding:4mm;border:1px solid #000;font-family:Arial,Helvetica,sans-serif;font-size:${fs}px;color:#000;background:#fff;overflow:hidden;display:flex;flex-direction:column;gap:2.5mm">
+              <div style="border-bottom:1px solid #000;padding-bottom:2mm"><b style="font-size:${fs * 0.8}px">FROM</b><br><span style="white-space:pre-line">${escapeHTML(sender)}</span></div>
+              <div style="flex:1"><b style="font-size:${fs * 0.8}px">TO</b><br><b style="font-size:${fs * 1.5}px">${escapeHTML(o.customer_name || '-')}</b><br>Tel: <b>${escapeHTML(o.customer_phone || '-')}</b><br>${escapeHTML(oAddr(o) || '-')}${o.location ? '<br>Landmark: ' + escapeHTML(o.location) : ''}</div>
+              ${withItems ? `<table style="width:100%;border-collapse:collapse;font-size:${fs * 0.85}px">${itemRows || '<tr><td>-</td></tr>'}</table>` : ''}
+              <div style="border-top:1px solid #000;padding-top:2mm;display:flex;justify-content:space-between"><span>Order: <b>${escapeHTML(String(o.order_number || o.id))}</b>${d ? '<br>' + escapeHTML(d.toLocaleDateString()) : ''}</span><span style="text-align:right">Total: <b>${lk(orderTotal(o))}</b>${window.isFreeShip(o) ? '<br>Delivery: FREE' : ''}</span></div></div>`;
         }
         window.printLabel = function(orderId) {
             const o = allOrdersData.find(x => String(x.id) === String(orderId));
@@ -2347,8 +2266,8 @@
             $('lblPrint').onclick = () => {
                 const c = cur(); draw();
                 const win = window.open('', '', 'height=700,width=600');
-                win.document.write(`<html><head><title>Label ${escapeHTML(String(o.order_number || o.id))}</title><style>@page{size:${c.w}mm ${c.h}mm;margin:0}body{margin:0}*{-webkit-print-color-adjust:exact;print-color-adjust:exact}</style></head><body>${labelHTML(o, c.w, c.h, c.fs, $('lblSender').value, $('lblItems').checked)}</body></html>`);
-                win.document.close(); win.focus(); setTimeout(() => { try { win.print(); } catch (e) {} }, 400);
+                win.document.write(`<html><head><title>Label ${escapeHTML(String(o.order_number || o.id))}</title><style>@page{size:${c.w}mm ${c.h}mm;margin:0}body{margin:0}</style></head><body>${labelHTML(o, c.w, c.h, c.fs, $('lblSender').value, $('lblItems').checked)}</body></html>`);
+                win.document.close(); win.focus(); win.print();
             };
             matchPreset(); draw();
         };
