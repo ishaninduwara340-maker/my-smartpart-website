@@ -7581,7 +7581,7 @@ body.spc-in-cat .cb-home,body.spc-searching .cb-home,body.spc-show-all .cb-home{
     P.forEach(function(p){ var b=String(p.brand||'').trim(); if(b&&p.inStock) count[b]=(count[b]||0)+1; });
     Object.keys(count).filter(function(b){return count[b]>=3}).sort(function(a,b){return count[b]-count[a]}).slice(0,2).forEach(function(b){
       var list=P.filter(function(p){return p.inStock&&String(p.brand||'').trim()===b}).slice(0,8);
-      host.appendChild(section('Explore the range from',b+' Products',list,function(){viewAll(b)}));
+      host.appendChild(section('Explore the range froms',b+' Products',list,function(){viewAll(b)}));
     });
   }
   var prev=window.renderProductGrid;
